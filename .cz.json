@@ -1,0 +1,20 @@
+{
+  "commitizen": {
+    "name": "cz_path",
+    "remove_path_prefixes": ["include", "src"],
+    "tag_format": "v$version",
+    "version_files": [
+      ".wiswa.jsonnet",
+      "CITATION.cff",
+      "CMakeLists.txt",
+      "README.md",
+      "package.json",
+      "vcpkg.json",
+      "man/browserselector.1",
+      "sh.tat.browserselector.yml",
+      "src/main.cpp"
+    ],
+    "version_provider": "npm",
+    "version_scheme": "semver"
+  }
+}

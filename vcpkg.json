@@ -1,0 +1,20 @@
+{
+  "dependencies": [
+    {
+      "name": "ecm",
+      "version>=": "6.7.0"
+    },
+    {
+      "features": ["gui", "widgets"],
+      "name": "qtbase",
+      "version>=": "6.8.3"
+    }
+  ],
+  "description": "Pick which browser to use based on domain names.",
+  "documentation": "https://browserselector.readthedocs.org",
+  "homepage": "https://tatsh.github.io/browserselector/",
+  "license": "MIT",
+  "maintainers": ["Andrew Udvare <audvare@gmail.com>"],
+  "name": "browserselector",
+  "version": "0.0.1"
+}
