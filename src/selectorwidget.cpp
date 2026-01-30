@@ -1,11 +1,11 @@
 #include <ranges>
 
-#include <QtGui/QDesktopServices>
 #include <QtCore/QDir>
 #include <QtCore/QMap>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QUrl>
 #include <QtGui/QCloseEvent>
+#include <QtGui/QDesktopServices>
 #include <QtGui/QIcon>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QPainter>

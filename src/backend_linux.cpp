@@ -156,8 +156,8 @@ QStringList parseExecString(const QString &exec) {
 
 bool isProfileRelatedArg(const QString &arg) {
     return arg == QLatin1String("-P") || arg == QLatin1String("--guest") ||
-           arg.startsWith(QLatin1String("--profile="))
-           || arg.startsWith(QLatin1String("--profile-directory="));
+           arg.startsWith(QLatin1String("--profile=")) ||
+           arg.startsWith(QLatin1String("--profile-directory="));
 }
 
 QString quoteArg(const QString &arg) {
