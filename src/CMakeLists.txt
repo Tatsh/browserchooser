@@ -1,3 +1,6 @@
+set(DISPLAY_NAME "Browser Chooser")
+configure_file(browserchooser.desktop.in browserchooser.desktop @ONLY)
+
 set(BACKEND_SOURCES backend_common.cpp)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     list(APPEND BACKEND_SOURCES backend_linux.cpp)
@@ -19,7 +22,6 @@ add_executable(browserchooser
     firefox_profile.cpp
     firefox_profile.h
     browserchooser.cpp
-    browserchooser.desktop
     browserchooser.h
     config.cpp
     config.h
@@ -48,3 +50,7 @@ endif()
 
 include(GNUInstallDirs)
 install(TARGETS browserchooser DESTINATION bin)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/browserchooser.desktop
+            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+endif()
