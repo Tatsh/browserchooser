@@ -1,7 +1,14 @@
 #include <QtCore/QFile>
 #include <QtCore/QLocale>
+#include <QtCore/QProcess>
 #include <QtCore/QRegularExpression>
 #include <QtCore/QTextStream>
+
+#ifdef Q_OS_MAC
+#include <QtCore/QJsonArray>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
+#endif
 
 #include "desktopentry.h"
 
@@ -101,6 +108,17 @@ QString DesktopEntry::executableName() const {
     if (exec_.isEmpty()) {
         return {};
     }
+#ifdef Q_OS_MAC
+    if (exec_.startsWith(QLatin1Char('/'))) {
+        return exec_.mid(exec_.lastIndexOf(QLatin1Char('/')) + 1);
+    }
+#endif
+#ifdef Q_OS_WIN
+    const auto lastSlash = exec_.lastIndexOf(QLatin1Char('\\'));
+    if (lastSlash >= 0) {
+        return exec_.mid(lastSlash + 1);
+    }
+#endif
     QString current;
     auto inQuote = false;
     QChar quoteChar;
@@ -125,7 +143,120 @@ QString DesktopEntry::executableName() const {
     return current;
 }
 
+#ifdef Q_OS_MAC
+bool DesktopEntry::parseAppBundle(const QString &bundlePath) {
+    valid_ = false;
+    filename_ = bundlePath;
+    entries_.clear();
+    const auto plistPath = bundlePath + QStringLiteral("/Contents/Info.plist");
+    if (!QFile::exists(plistPath)) {
+        return false;
+    }
+    QProcess proc;
+    proc.setProgram(QStringLiteral("plutil"));
+    proc.setArguments({QStringLiteral("-convert"),
+                       QStringLiteral("json"),
+                       QStringLiteral("-r"),
+                       QStringLiteral("-o"),
+                       QStringLiteral("-"),
+                       plistPath});
+    proc.start(QProcess::ReadOnly);
+    if (!proc.waitForFinished(5000) || proc.exitStatus() != QProcess::NormalExit ||
+        proc.exitCode() != 0) {
+        return false;
+    }
+    const auto json = QJsonDocument::fromJson(proc.readAllStandardOutput());
+    if (!json.isObject()) {
+        return false;
+    }
+    const auto root = json.object();
+    const auto execName = root.value(QStringLiteral("CFBundleExecutable")).toString();
+    if (execName.isEmpty()) {
+        return false;
+    }
+    exec_ = bundlePath + QStringLiteral("/Contents/MacOS/") + execName;
+    if (!QFile::exists(exec_)) {
+        return false;
+    }
+    auto name = root.value(QStringLiteral("CFBundleDisplayName")).toString();
+    if (name.isEmpty()) {
+        name = root.value(QStringLiteral("CFBundleName")).toString();
+    }
+    if (name.isEmpty()) {
+        name = execName;
+    }
+    entries_[QStringLiteral("Name")] = name;
+    const auto iconFile = root.value(QStringLiteral("CFBundleIconFile")).toString();
+    icon_ = iconFile.isEmpty() ? execName : iconFile;
+    startupWMClass_ = QString();
+    categories_ = QStringList();
+    mimeTypes_ = QStringList();
+    noDisplay_ = false;
+    valid_ = true;
+    return true;
+}
+#endif
+
+#ifdef Q_OS_WIN
+#include <QtCore/QFileInfo>
+
+bool DesktopEntry::parseFromExecutable(const QString &exePath) {
+    valid_ = false;
+    filename_ = exePath;
+    entries_.clear();
+    if (!QFile::exists(exePath) || !exePath.endsWith(QStringLiteral(".exe"), Qt::CaseInsensitive)) {
+        return false;
+    }
+    exec_ = exePath;
+    const auto baseName = QFileInfo(exePath).completeBaseName();
+    QString name;
+    if (baseName.compare(QStringLiteral("chrome"), Qt::CaseInsensitive) == 0) {
+        name = QStringLiteral("Google Chrome");
+    } else if (baseName.compare(QStringLiteral("firefox"), Qt::CaseInsensitive) == 0) {
+        name = QStringLiteral("Mozilla Firefox");
+    } else if (baseName.compare(QStringLiteral("msedge"), Qt::CaseInsensitive) == 0) {
+        name = QStringLiteral("Microsoft Edge");
+    } else if (baseName.compare(QStringLiteral("brave"), Qt::CaseInsensitive) == 0) {
+        name = QStringLiteral("Brave");
+    } else if (baseName.compare(QStringLiteral("opera"), Qt::CaseInsensitive) == 0) {
+        name = QStringLiteral("Opera");
+    } else if (baseName.compare(QStringLiteral("iexplore"), Qt::CaseInsensitive) == 0) {
+        name = QStringLiteral("Internet Explorer");
+    } else if (baseName.compare(QStringLiteral("chromium"), Qt::CaseInsensitive) == 0) {
+        name = QStringLiteral("Chromium");
+    } else {
+        name = baseName;
+    }
+    entries_[QStringLiteral("Name")] = name;
+    icon_ = exePath;
+    startupWMClass_ = QString();
+    categories_ = QStringList();
+    mimeTypes_ = QStringList();
+    noDisplay_ = false;
+    valid_ = true;
+    return true;
+}
+#endif
+
 std::expected<DesktopEntry, DesktopEntryError> readDesktopEntry(const QString &filename) {
+#ifdef Q_OS_MAC
+    if (filename.endsWith(QStringLiteral(".app"))) {
+        DesktopEntry entry;
+        if (entry.parseAppBundle(filename)) {
+            return entry;
+        }
+        return std::unexpected(DesktopEntryError::ParseFailed);
+    }
+#endif
+#ifdef Q_OS_WIN
+    if (filename.endsWith(QStringLiteral(".exe"), Qt::CaseInsensitive)) {
+        DesktopEntry entry;
+        if (entry.parseFromExecutable(filename)) {
+            return entry;
+        }
+        return std::unexpected(DesktopEntryError::ParseFailed);
+    }
+#endif
     DesktopEntry entry;
     if (entry.parse(filename)) {
         return entry;

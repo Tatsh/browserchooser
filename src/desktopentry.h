@@ -23,6 +23,24 @@ public:
      * @returns True if parsing was successful, false otherwise.
      */
     bool parse(const QString &filename);
+
+#ifdef Q_OS_MAC
+    /**
+     * Parses a macOS .app bundle (Contents/Info.plist).
+     * @param bundlePath Path to the .app bundle.
+     * @returns True if parsing was successful, false otherwise.
+     */
+    bool parseAppBundle(const QString &bundlePath);
+#endif
+
+#ifdef Q_OS_WIN
+    /**
+     * Parses a Windows executable path into a synthetic entry (name from exe).
+     * @param exePath Full path to the .exe.
+     * @returns True if the file exists and parsing was successful, false otherwise.
+     */
+    bool parseFromExecutable(const QString &exePath);
+#endif
     /** Checks if the desktop entry is valid. */
     [[nodiscard]] bool isValid() const {
         return valid_;

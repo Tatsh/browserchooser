@@ -1,14 +1,24 @@
+set(BACKEND_SOURCES)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND BACKEND_SOURCES backend_linux.cpp)
+elseif(WIN32)
+    list(APPEND BACKEND_SOURCES backend_win.cpp)
+elseif(APPLE)
+    list(APPEND BACKEND_SOURCES backend_mac.cpp)
+else()
+    message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
+endif()
 
 add_executable(browserchooser
+    backend.h
+    ${BACKEND_SOURCES}
     browseroption.cpp
     browseroption.h
-    browserfinder.cpp
-    browserfinder.h
+    chrome_profile.cpp
+    chrome_profile.h
     browserchooser.cpp
     browserchooser.desktop
     browserchooser.h
-    browserlauncher.cpp
-    browserlauncher.h
     config.cpp
     config.h
     desktopentry.cpp
@@ -27,6 +37,9 @@ target_link_libraries(browserchooser PRIVATE
     Qt6::Gui
     Qt6::Widgets
 )
+if(WIN32)
+    target_link_libraries(browserchooser PRIVATE advapi32)
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS browserchooser DESTINATION bin)

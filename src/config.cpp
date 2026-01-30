@@ -2,14 +2,9 @@
 #include <QtCore/QRegularExpression>
 #include <QtCore/QStandardPaths>
 
-#include "browserfinder.h"
+#include "backend.h"
 #include "browseroption.h"
 #include "config.h"
-
-QString getConfigFilePath() {
-    auto configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    return configDir + QStringLiteral("/browserchooserrc");
-}
 
 namespace {
 

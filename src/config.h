@@ -7,14 +7,8 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 
-#include "browserfinder.h"
+#include "backend.h"
 #include "browseroption.h"
-
-/**
- * Returns the path to the configuration file.
- * @return Full path to the config file (e.g. under @c ~/.config).
- */
-[[nodiscard]] QString getConfigFilePath();
 
 /** Error code for getRememberedBrowser. */
 enum class GetRememberedBrowserError { EmptyDomain, InvalidPath, NotFound };

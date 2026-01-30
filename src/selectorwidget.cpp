@@ -13,8 +13,8 @@
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QVBoxLayout>
 
+#include "backend.h"
 #include "browserchooser.h"
-#include "browserlauncher.h"
 #include "desktopentry.h"
 #include "selectorwidget.h"
 

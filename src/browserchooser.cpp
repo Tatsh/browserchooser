@@ -2,9 +2,9 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
 
+#include "backend.h"
 #include "browserchooser.h"
-#include "browserfinder.h"
-#include "browserlauncher.h"
+#include "desktopentry.h"
 #include "selectorwidget.h"
 
 BrowserChooser::BrowserChooser(const QString &urlToOpen)
