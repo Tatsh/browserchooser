@@ -156,7 +156,8 @@ QStringList parseExecString(const QString &exec) {
 
 bool isProfileRelatedArg(const QString &arg) {
     return arg == QLatin1String("-P") || arg == QLatin1String("--guest") ||
-           arg.startsWith(QLatin1String("--profile="));
+           arg.startsWith(QLatin1String("--profile="))
+           || arg.startsWith(QLatin1String("--profile-directory="));
 }
 
 QString quoteArg(const QString &arg) {
@@ -258,7 +259,7 @@ QStringList buildArgvForOption(const BrowserOption &option, const QString &url) 
         } else if (option.profileName() == QStringLiteral("Guest")) {
             args.prepend(QStringLiteral("--guest"));
         } else {
-            args.prepend(QStringLiteral("--profile=") + option.profileName());
+            args.prepend(QStringLiteral("--profile-directory=") + option.profileName());
         }
     }
     QStringList result;
@@ -491,7 +492,7 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls) {
             } else if (option.profileName() == QStringLiteral("Guest")) {
                 args.prepend(QStringLiteral("--guest"));
             } else {
-                args.prepend(QStringLiteral("--profile=") + option.profileName());
+                args.prepend(QStringLiteral("--profile-directory=") + option.profileName());
             }
         }
         QProcess::startDetached(program, args);

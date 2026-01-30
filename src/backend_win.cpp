@@ -236,7 +236,11 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls) {
     }
     QStringList args;
     if (!option.profileName().isEmpty()) {
-        args << QStringLiteral("-P") << option.profileName();
+        if (isFirefoxExe(exePath)) {
+            args << QStringLiteral("-P") << option.profileName();
+        } else {
+            args << QStringLiteral("--profile-directory=") + option.profileName();
+        }
     }
     args << urls;
     QProcess::startDetached(exePath, args);
@@ -246,8 +250,13 @@ QString getCommandLineForDisplay(const BrowserOption &option, const QString &url
     const auto exePath = option.desktopPath();
     QString cmd = quoteArg(exePath);
     if (!option.profileName().isEmpty()) {
-        cmd += QLatin1Char(' ') + quoteArg(QStringLiteral("-P")) + QLatin1Char(' ') +
-               quoteArg(option.profileName());
+        if (isFirefoxExe(exePath)) {
+            cmd += QLatin1Char(' ') + quoteArg(QStringLiteral("-P")) + QLatin1Char(' ') +
+                   quoteArg(option.profileName());
+        } else {
+            cmd += QLatin1Char(' ') +
+                   quoteArg(QStringLiteral("--profile-directory=") + option.profileName());
+        }
     }
     if (!url.isEmpty()) {
         cmd += QLatin1Char(' ') + quoteArg(url);

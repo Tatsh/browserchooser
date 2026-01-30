@@ -247,7 +247,11 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls) {
     QStringList args{QStringLiteral("-a"), bundlePath};
     QStringList appArgs;
     if (!option.profileName().isEmpty()) {
-        appArgs << QStringLiteral("-P") << option.profileName();
+        if (isFirefoxBundle(bundlePath)) {
+            appArgs << QStringLiteral("-P") << option.profileName();
+        } else {
+            appArgs << QStringLiteral("--profile-directory=") + option.profileName();
+        }
     }
     appArgs << urls;
     if (!appArgs.isEmpty()) {
@@ -261,7 +265,11 @@ QString getCommandLineForDisplay(const BrowserOption &option, const QString &url
     QString cmd = QStringLiteral("open -a \"%1\"").arg(bundlePath);
     QStringList appArgs;
     if (!option.profileName().isEmpty()) {
-        appArgs << QStringLiteral("-P") << option.profileName();
+        if (isFirefoxBundle(bundlePath)) {
+            appArgs << QStringLiteral("-P") << option.profileName();
+        } else {
+            appArgs << QStringLiteral("--profile-directory=") + option.profileName();
+        }
     }
     if (!url.isEmpty()) {
         appArgs << url;
