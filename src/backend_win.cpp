@@ -115,6 +115,41 @@ bool isFirefoxExe(const QString &exePath) {
            == 0;
 }
 
+// Reads a comma-separated list from the config file (used for Advanced/hideProfileBrowsers
+// and Advanced/hideBrowsers). Identifiers can be exe base names (e.g. firefox) or full canonical paths.
+QStringList readCommaSeparatedList(const QString &key) {
+    const auto raw =
+        QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString();
+    auto list = raw.split(QLatin1Char(','), Qt::SkipEmptyParts);
+    for (auto &s : list) {
+        s = s.trimmed();
+    }
+    list.removeAll(QString());
+    return list;
+}
+
+bool listContainsIdentifier(const QStringList &list, const QString &identifier) {
+    if (identifier.isEmpty()) {
+        return false;
+    }
+    return std::ranges::any_of(list, [&identifier](const QString &s) {
+        return s.compare(identifier, Qt::CaseInsensitive) == 0;
+    });
+}
+
+QString getCanonicalBrowserPath(const BrowserOption &option) {
+    const auto path = option.desktopPath();
+    if (path.isEmpty()) {
+        return {};
+    }
+    const auto canonical = QFileInfo(path).canonicalFilePath();
+    return canonical.isEmpty() ? path : canonical;
+}
+
+QString exeBaseName(const QString &exePath) {
+    return QFileInfo(exePath).completeBaseName();
+}
+
 QString quoteArg(const QString &arg) {
     if (arg.isEmpty()) {
         return QStringLiteral("\"\"");
@@ -150,17 +185,27 @@ QString quoteArg(const QString &arg) {
 QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
     QList<BrowserOption> options;
     const auto paths = discoverBrowserPaths();
+    const auto hideProfileBrowsers =
+        readCommaSeparatedList(QStringLiteral("Advanced/hideProfileBrowsers"));
     const auto firefoxConfigDir = getFirefoxConfigDir();
     const auto firefoxProfiles = QDir(firefoxConfigDir).exists()
                                     ? getFirefoxProfiles(firefoxConfigDir)
                                     : QList<FirefoxProfilePair>();
-    const bool hasFirefoxProfiles = !firefoxProfiles.isEmpty();
     for (const auto &exePath : paths) {
         DesktopEntry entry;
         if (!entry.parseFromExecutable(exePath)) {
             continue;
         }
-        if (isFirefoxExe(exePath) && hasFirefoxProfiles) {
+        const auto baseName = exeBaseName(exePath);
+        const auto canonicalExePath = QFileInfo(exePath).canonicalFilePath();
+        const auto resolvedExePath = canonicalExePath.isEmpty() ? exePath : canonicalExePath;
+        const bool skipFirefoxProfiles =
+            isFirefoxExe(exePath)
+            && (listContainsIdentifier(hideProfileBrowsers, QStringLiteral("firefox"))
+                || listContainsIdentifier(hideProfileBrowsers, resolvedExePath));
+        const bool useFirefoxProfiles =
+            isFirefoxExe(exePath) && !skipFirefoxProfiles && !firefoxProfiles.isEmpty();
+        if (useFirefoxProfiles) {
             const bool singleProfile = firefoxProfiles.size() == 1;
             for (const auto &pair : firefoxProfiles) {
                 options.append(
@@ -173,17 +218,19 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
     std::ranges::sort(options, [](const BrowserOption &a, const BrowserOption &b) {
         return a.displayName().compare(b.displayName(), Qt::CaseInsensitive) < 0;
     });
-    // Secret option: set [Advanced] ShowIExplorer=true in the config file to show IE.
-    const bool showIExplorer =
+    const QVariant hideBrowsersVar =
         QSettings(getConfigFilePath(), QSettings::IniFormat)
-            .value(QStringLiteral("Advanced/ShowIExplorer"), false)
-            .toBool();
-    if (!showIExplorer) {
-        options.removeIf([](const BrowserOption &opt) {
-            return opt.desktopPath().endsWith(QStringLiteral("iexplore.exe"),
-                                              Qt::CaseInsensitive);
-        });
-    }
+            .value(QStringLiteral("Advanced/hideBrowsers"));
+    QStringList hideBrowsers =
+        hideBrowsersVar.isNull() || !hideBrowsersVar.isValid()
+            ? QStringList{QStringLiteral("iexplore")}
+            : readCommaSeparatedList(QStringLiteral("Advanced/hideBrowsers"));
+    options.removeIf([&hideBrowsers](const BrowserOption &opt) {
+        const auto baseName = exeBaseName(opt.desktopPath());
+        const auto canonicalPath = getCanonicalBrowserPath(opt);
+        return listContainsIdentifier(hideBrowsers, baseName)
+               || listContainsIdentifier(hideBrowsers, canonicalPath);
+    });
     return options;
 }
 

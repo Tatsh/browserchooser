@@ -302,30 +302,27 @@ void SelectorWidget::setupWindow() {
             guestGrid->setColumnStretch(c, 0);
         }
         guestLayout->addLayout(guestGrid);
-        guestSectionWidget_->setVisible(chooser_->showGuestProfiles());
+        guestSectionWidget_->setVisible(!chooser_->hideGuestProfiles());
         outerLayout->addWidget(guestSectionWidget_);
         outerLayout->addSpacing(6);
-        auto *separator = new QFrame(this);
-        separator->setFrameShape(QFrame::HLine);
-        separator->setFrameShadow(QFrame::Sunken);
-        outerLayout->addWidget(separator);
+    }
+    auto *separatorBeforeRemember = new QFrame(this);
+    separatorBeforeRemember->setFrameShape(QFrame::HLine);
+    separatorBeforeRemember->setFrameShadow(QFrame::Sunken);
+    outerLayout->addWidget(separatorBeforeRemember);
+    if (rememberCheckBox_) {
+        outerLayout->addWidget(rememberCheckBox_);
+        outerLayout->addWidget(radioContainer_);
+    }
+    if (!guestIndices.isEmpty()) {
         showGuestCheckBox_ = new QCheckBox(this);
-        showGuestCheckBox_->setText(tr("Show Guest profiles"));
-        showGuestCheckBox_->setChecked(chooser_->showGuestProfiles());
+        showGuestCheckBox_->setText(tr("Hide Guest profiles"));
+        showGuestCheckBox_->setChecked(chooser_->hideGuestProfiles());
         connect(showGuestCheckBox_,
                 &QCheckBox::toggled,
                 this,
                 &SelectorWidget::onShowGuestCheckBoxToggled);
         outerLayout->addWidget(showGuestCheckBox_);
-    } else {
-        auto *separator = new QFrame(this);
-        separator->setFrameShape(QFrame::HLine);
-        separator->setFrameShadow(QFrame::Sunken);
-        outerLayout->addWidget(separator);
-    }
-    if (rememberCheckBox_) {
-        outerLayout->addWidget(rememberCheckBox_);
-        outerLayout->addWidget(radioContainer_);
     }
     if (!otherIndices.isEmpty()) {
         hideBrowsersWithoutProfilesCheckBox_ = new QCheckBox(this);
@@ -363,9 +360,9 @@ void SelectorWidget::closeEvent(QCloseEvent *event) {
 }
 
 void SelectorWidget::onShowGuestCheckBoxToggled(bool checked) {
-    chooser_->setShowGuestProfiles(checked);
+    chooser_->setHideGuestProfiles(checked);
     if (guestSectionWidget_) {
-        guestSectionWidget_->setVisible(checked);
+        guestSectionWidget_->setVisible(!checked);
     }
     adjustSize();
 }

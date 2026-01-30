@@ -70,6 +70,14 @@ void BrowserChooser::remember(const BrowserOption &option, const QString &domain
     }
 }
 
+bool BrowserChooser::hideGuestProfiles() const {
+    return appConfig_.hideGuestProfiles();
+}
+
+void BrowserChooser::setHideGuestProfiles(bool hide) {
+    appConfig_.setHideGuestProfiles(hide);
+}
+
 bool BrowserChooser::showGuestProfiles() const {
     return appConfig_.showGuestProfiles();
 }

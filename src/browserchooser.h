@@ -47,9 +47,13 @@ public:
     [[nodiscard]] const QList<BrowserOption> &availableBrowsers() const {
         return availableBrowsers_;
     }
-    /** Whether Guest profile options are shown in the selector. */
+    /** Whether Guest profile options are hidden. Default true. */
+    [[nodiscard]] bool hideGuestProfiles() const;
+    /** Sets whether to hide Guest profile options. */
+    void setHideGuestProfiles(bool hide);
+    /** Whether Guest profile options are shown (inverse of hideGuestProfiles). */
     [[nodiscard]] bool showGuestProfiles() const;
-    /** Sets whether Guest profile options are shown. */
+    /** Sets whether to show Guest profile options. */
     void setShowGuestProfiles(bool show);
     /** Whether the Other browsers section is hidden. */
     [[nodiscard]] bool hideBrowsersWithoutProfiles() const;

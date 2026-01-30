@@ -130,13 +130,21 @@ IncludeNoDisplay AppConfig::includeNoDisplayBrowsers() const {
                IncludeNoDisplay::No;
 }
 
+bool AppConfig::hideGuestProfiles() const {
+    return settings_.value(QStringLiteral("General/hide_guest_profiles"), true).toBool();
+}
+
+void AppConfig::setHideGuestProfiles(bool hide) {
+    settings_.setValue(QStringLiteral("General/hide_guest_profiles"), hide);
+    settings_.sync();
+}
+
 bool AppConfig::showGuestProfiles() const {
-    return settings_.value(QStringLiteral("General/show_guest_profiles"), false).toBool();
+    return !hideGuestProfiles();
 }
 
 void AppConfig::setShowGuestProfiles(bool show) {
-    settings_.setValue(QStringLiteral("General/show_guest_profiles"), show);
-    settings_.sync();
+    setHideGuestProfiles(!show);
 }
 
 bool AppConfig::hideBrowsersWithoutProfiles() const {

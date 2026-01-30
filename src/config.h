@@ -56,17 +56,33 @@ public:
      * @return @c IncludeNoDisplay::Yes or @c IncludeNoDisplay::No.
      */
     [[nodiscard]] IncludeNoDisplay includeNoDisplayBrowsers() const;
-    /** Whether Guest profile options are shown in the selector. */
+    /** Whether Guest profile options are hidden in the selector. Default true. */
+    [[nodiscard]] bool hideGuestProfiles() const;
+    /**
+     * Sets whether to hide Guest profile options.
+     * @param hide True to hide Guest profiles.
+     */
+    void setHideGuestProfiles(bool hide);
+    /** Whether Guest profile options are shown (inverse of hideGuestProfiles). */
     [[nodiscard]] bool showGuestProfiles() const;
-    /** Sets whether Guest profile options are shown. @param show True to show Guest profiles. */
+    /**
+     * Sets whether to show Guest profile options.
+     * @param show True to show Guest profiles.
+     */
     void setShowGuestProfiles(bool show);
     /** Whether the "Other browsers" section is hidden (browsers without profiles). Default false. */
     [[nodiscard]] bool hideBrowsersWithoutProfiles() const;
-    /** Sets whether to hide the Other browsers section. @param hide True to hide. */
+    /**
+     * Sets whether to hide the Other browsers section.
+     * @param hide True to hide.
+     */
     void setHideBrowsersWithoutProfiles(bool hide);
     /** Whether the "Do not ask again" checkbox was checked when the selector last closed. */
     [[nodiscard]] bool rememberChoiceChecked() const;
-    /** Sets whether the "Do not ask again" checkbox is checked. @param checked True if checked. */
+    /**
+     * Sets whether the "Do not ask again" checkbox is checked.
+     * @param checked True if checked.
+     */
     void setRememberChoiceChecked(bool checked);
 
 private:
