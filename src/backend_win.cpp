@@ -7,6 +7,7 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QProcess>
+#include <QtCore/QSettings>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QSet>
 
@@ -172,6 +173,17 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
     std::ranges::sort(options, [](const BrowserOption &a, const BrowserOption &b) {
         return a.displayName().compare(b.displayName(), Qt::CaseInsensitive) < 0;
     });
+    // Secret option: set [Advanced] ShowIExplorer=true in the config file to show IE.
+    const bool showIExplorer =
+        QSettings(getConfigFilePath(), QSettings::IniFormat)
+            .value(QStringLiteral("Advanced/ShowIExplorer"), false)
+            .toBool();
+    if (!showIExplorer) {
+        options.removeIf([](const BrowserOption &opt) {
+            return opt.desktopPath().endsWith(QStringLiteral("iexplore.exe"),
+                                              Qt::CaseInsensitive);
+        });
+    }
     return options;
 }
 
