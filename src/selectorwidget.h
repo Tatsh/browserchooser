@@ -30,6 +30,7 @@ private Q_SLOTS:
     void onButtonClicked(int browserIndex);
     void onRememberCheckBoxToggled(bool checked);
     void onShowGuestCheckBoxToggled(bool checked);
+    void onHideBrowsersWithoutProfilesCheckBoxToggled(bool checked);
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -50,7 +51,9 @@ private:
     BrowserChooser *chooser_;
     QCheckBox *rememberCheckBox_ = nullptr;
     QCheckBox *showGuestCheckBox_ = nullptr;
+    QCheckBox *hideBrowsersWithoutProfilesCheckBox_ = nullptr;
     QWidget *guestSectionWidget_ = nullptr;
+    QWidget *otherSectionWidget_ = nullptr;
     QRadioButton *exactDomainRadio_ = nullptr;
     QRadioButton *wildcardDomainRadio_ = nullptr;
     QWidget *radioContainer_ = nullptr;

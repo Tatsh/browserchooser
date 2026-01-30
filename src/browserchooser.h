@@ -51,6 +51,10 @@ public:
     [[nodiscard]] bool showGuestProfiles() const;
     /** Sets whether Guest profile options are shown. */
     void setShowGuestProfiles(bool show);
+    /** Whether the Other browsers section is hidden. */
+    [[nodiscard]] bool hideBrowsersWithoutProfiles() const;
+    /** Sets whether to hide the Other browsers section. */
+    void setHideBrowsersWithoutProfiles(bool hide);
     /** Whether the "Do not ask again" checkbox was checked when the selector last closed. */
     [[nodiscard]] bool rememberChoiceChecked() const;
     /** Sets whether the "Do not ask again" checkbox is checked. */

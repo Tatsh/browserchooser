@@ -238,7 +238,40 @@ void SelectorWidget::setupWindow() {
     if (webIcon.isNull()) {
         webIcon = QIcon::fromTheme(QStringLiteral("web-browser"));
     }
-    addSection(tr("Other browsers"), otherIndices, webIcon, false, false, true);
+    if (!otherIndices.isEmpty()) {
+        otherSectionWidget_ = new QWidget(this);
+        auto *otherLayout = new QVBoxLayout(otherSectionWidget_);
+        otherLayout->setContentsMargins(0, 0, 0, 0);
+        otherLayout->addWidget(
+            createSectionHeader(tr("Other browsers"), webIcon, otherSectionWidget_));
+        auto *otherGrid = new QGridLayout();
+        otherGrid->setContentsMargins(kSectionHeaderContentOffset, 0, 0, 0);
+        otherGrid->setSpacing(10);
+        for (auto j = 0; j < otherIndices.size(); ++j) {
+            auto browserIndex = otherIndices[j];
+            QWidget *entry = createBrowserEntry(
+                browsers[browserIndex], browserIndex, false, true);
+            otherGrid->addWidget(
+                entry, j / columnsPerRow, j % columnsPerRow, 1, 1,
+                Qt::AlignLeft | Qt::AlignTop);
+        }
+        const auto otherLastRow =
+            static_cast<int>(otherIndices.size() - 1) / columnsPerRow;
+        const auto otherLastRowCount =
+            static_cast<int>(otherIndices.size()) - otherLastRow * columnsPerRow;
+        for (auto col = otherLastRowCount; col < columnsPerRow; ++col) {
+            otherGrid->addWidget(
+                makePlaceholder(), otherLastRow, col, 1, 1,
+                Qt::AlignLeft | Qt::AlignTop);
+        }
+        for (auto c = 0; c < columnsPerRow; ++c) {
+            otherGrid->setColumnStretch(c, 0);
+        }
+        otherLayout->addLayout(otherGrid);
+        otherLayout->addSpacing(kSectionSpacing);
+        outerLayout->addWidget(otherSectionWidget_);
+        otherSectionWidget_->setVisible(!chooser_->hideBrowsersWithoutProfiles());
+    }
     if (!guestIndices.isEmpty()) {
         guestSectionWidget_ = new QWidget(this);
         auto *guestLayout = new QVBoxLayout(guestSectionWidget_);
@@ -294,6 +327,18 @@ void SelectorWidget::setupWindow() {
         outerLayout->addWidget(rememberCheckBox_);
         outerLayout->addWidget(radioContainer_);
     }
+    if (!otherIndices.isEmpty()) {
+        hideBrowsersWithoutProfilesCheckBox_ = new QCheckBox(this);
+        hideBrowsersWithoutProfilesCheckBox_->setText(
+            tr("Hide browsers without profiles"));
+        hideBrowsersWithoutProfilesCheckBox_->setChecked(
+            chooser_->hideBrowsersWithoutProfiles());
+        connect(hideBrowsersWithoutProfilesCheckBox_,
+                &QCheckBox::toggled,
+                this,
+                &SelectorWidget::onHideBrowsersWithoutProfilesCheckBoxToggled);
+        outerLayout->addWidget(hideBrowsersWithoutProfilesCheckBox_);
+    }
     setLayout(outerLayout);
     // Focus first button.
     if (firstButton_) {
@@ -321,6 +366,14 @@ void SelectorWidget::onShowGuestCheckBoxToggled(bool checked) {
     chooser_->setShowGuestProfiles(checked);
     if (guestSectionWidget_) {
         guestSectionWidget_->setVisible(checked);
+    }
+    adjustSize();
+}
+
+void SelectorWidget::onHideBrowsersWithoutProfilesCheckBoxToggled(bool checked) {
+    chooser_->setHideBrowsersWithoutProfiles(checked);
+    if (otherSectionWidget_) {
+        otherSectionWidget_->setVisible(!checked);
     }
     adjustSize();
 }

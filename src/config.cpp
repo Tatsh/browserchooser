@@ -139,6 +139,16 @@ void AppConfig::setShowGuestProfiles(bool show) {
     settings_.sync();
 }
 
+bool AppConfig::hideBrowsersWithoutProfiles() const {
+    return settings_.value(QStringLiteral("General/hide_browsers_without_profiles"), false)
+        .toBool();
+}
+
+void AppConfig::setHideBrowsersWithoutProfiles(bool hide) {
+    settings_.setValue(QStringLiteral("General/hide_browsers_without_profiles"), hide);
+    settings_.sync();
+}
+
 bool AppConfig::rememberChoiceChecked() const {
     return settings_.value(QStringLiteral("General/remember_choice_checked"), true).toBool();
 }

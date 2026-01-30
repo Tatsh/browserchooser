@@ -78,6 +78,14 @@ void BrowserChooser::setShowGuestProfiles(bool show) {
     appConfig_.setShowGuestProfiles(show);
 }
 
+bool BrowserChooser::hideBrowsersWithoutProfiles() const {
+    return appConfig_.hideBrowsersWithoutProfiles();
+}
+
+void BrowserChooser::setHideBrowsersWithoutProfiles(bool hide) {
+    appConfig_.setHideBrowsersWithoutProfiles(hide);
+}
+
 bool BrowserChooser::rememberChoiceChecked() const {
     return appConfig_.rememberChoiceChecked();
 }
