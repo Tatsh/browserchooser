@@ -112,6 +112,15 @@ bool isFirefoxBundle(const QString &bundlePath) {
     return baseName.contains(QStringLiteral("Firefox"), Qt::CaseInsensitive);
 }
 
+bool isSafariBundle(const QString &bundlePath) {
+    const auto baseName = QFileInfo(bundlePath).completeBaseName();
+    return baseName.compare(QStringLiteral("Safari"), Qt::CaseInsensitive) == 0;
+}
+
+bool isWebBrowser(const QString &bundlePath) {
+    return isSafariBundle(bundlePath) || appHandlesHttpHttps(bundlePath);
+}
+
 } // anonymous namespace
 
 QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
@@ -136,7 +145,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
                 continue;
             }
             const auto bundlePath = dir.absoluteFilePath(name);
-            if (!appHandlesHttpHttps(bundlePath)) {
+            if (!isWebBrowser(bundlePath)) {
                 continue;
             }
             DesktopEntry entry;
