@@ -1,14 +1,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QLocale>
-#include <QtCore/QProcess>
 #include <QtCore/QRegularExpression>
 #include <QtCore/QTextStream>
-
-#ifdef Q_OS_MAC
-#include <QtCore/QJsonArray>
-#include <QtCore/QJsonDocument>
-#include <QtCore/QJsonObject>
-#endif
 
 #include "desktopentry.h"
 
@@ -142,60 +135,6 @@ QString DesktopEntry::executableName() const {
     }
     return current;
 }
-
-#ifdef Q_OS_MAC
-bool DesktopEntry::parseAppBundle(const QString &bundlePath) {
-    valid_ = false;
-    filename_ = bundlePath;
-    entries_.clear();
-    const auto plistPath = bundlePath + QStringLiteral("/Contents/Info.plist");
-    if (!QFile::exists(plistPath)) {
-        return false;
-    }
-    QProcess proc;
-    proc.setProgram(QStringLiteral("plutil"));
-    proc.setArguments({QStringLiteral("-convert"),
-                       QStringLiteral("json"),
-                       QStringLiteral("-r"),
-                       QStringLiteral("-o"),
-                       QStringLiteral("-"),
-                       plistPath});
-    proc.start(QProcess::ReadOnly);
-    if (!proc.waitForFinished(5000) || proc.exitStatus() != QProcess::NormalExit ||
-        proc.exitCode() != 0) {
-        return false;
-    }
-    const auto json = QJsonDocument::fromJson(proc.readAllStandardOutput());
-    if (!json.isObject()) {
-        return false;
-    }
-    const auto root = json.object();
-    const auto execName = root.value(QStringLiteral("CFBundleExecutable")).toString();
-    if (execName.isEmpty()) {
-        return false;
-    }
-    exec_ = bundlePath + QStringLiteral("/Contents/MacOS/") + execName;
-    if (!QFile::exists(exec_)) {
-        return false;
-    }
-    auto name = root.value(QStringLiteral("CFBundleDisplayName")).toString();
-    if (name.isEmpty()) {
-        name = root.value(QStringLiteral("CFBundleName")).toString();
-    }
-    if (name.isEmpty()) {
-        name = execName;
-    }
-    entries_[QStringLiteral("Name")] = name;
-    const auto iconFile = root.value(QStringLiteral("CFBundleIconFile")).toString();
-    icon_ = iconFile.isEmpty() ? execName : iconFile;
-    startupWMClass_ = QString();
-    categories_ = QStringList();
-    mimeTypes_ = QStringList();
-    noDisplay_ = false;
-    valid_ = true;
-    return true;
-}
-#endif
 
 #ifdef Q_OS_WIN
 #include <QtCore/QFileInfo>

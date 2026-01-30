@@ -3,12 +3,11 @@
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
-#include <QtCore/QJsonArray>
-#include <QtCore/QJsonDocument>
-#include <QtCore/QJsonObject>
 #include <QtCore/QProcess>
 #include <QtCore/QSettings>
 #include <QtCore/QStandardPaths>
+
+#import <Foundation/Foundation.h>
 
 #include "backend.h"
 #include "browseroption.h"
@@ -17,37 +16,50 @@
 
 namespace {
 
+static QString stringFromNSString(NSString *ns) {
+    if (!ns || ![ns isKindOfClass:[NSString class]]) {
+        return {};
+    }
+    return QString::fromUtf8([ns UTF8String]);
+}
+
+static NSDictionary *loadPlist(const QString &plistPath) {
+    const QByteArray pathUtf8 = plistPath.toUtf8();
+    NSString *path = [NSString stringWithUTF8String:pathUtf8.constData()];
+    return [NSDictionary dictionaryWithContentsOfFile:path];
+}
+
 bool appHandlesHttpHttps(const QString &bundlePath) {
     const auto plistPath = bundlePath + QStringLiteral("/Contents/Info.plist");
     if (!QFile::exists(plistPath)) {
         return false;
     }
-    QProcess proc;
-    proc.setProgram(QStringLiteral("plutil"));
-    proc.setArguments({QStringLiteral("-convert"),
-                       QStringLiteral("json"),
-                       QStringLiteral("-r"),
-                       QStringLiteral("-o"),
-                       QStringLiteral("-"),
-                       plistPath});
-    proc.start(QProcess::ReadOnly);
-    if (!proc.waitForFinished(5000) || proc.exitStatus() != QProcess::NormalExit ||
-        proc.exitCode() != 0) {
-        return false;
-    }
-    const auto json = QJsonDocument::fromJson(proc.readAllStandardOutput());
-    if (!json.isObject()) {
-        return false;
-    }
-    const auto root = json.object();
-    const auto urlTypes = root.value(QStringLiteral("CFBundleURLTypes")).toArray();
-    for (const auto &typeVal : urlTypes) {
-        const auto type = typeVal.toObject();
-        const auto schemes = type.value(QStringLiteral("CFBundleURLSchemes")).toArray();
-        for (const auto &schemeVal : schemes) {
-            const auto scheme = schemeVal.toString().toLower();
-            if (scheme == QStringLiteral("http") || scheme == QStringLiteral("https")) {
-                return true;
+    @autoreleasepool {
+        NSDictionary *root = loadPlist(plistPath);
+        if (!root) {
+            return false;
+        }
+        NSArray *urlTypes = root[@"CFBundleURLTypes"];
+        if (!urlTypes || ![urlTypes isKindOfClass:[NSArray class]]) {
+            return false;
+        }
+        for (id typeVal in urlTypes) {
+            if (![typeVal isKindOfClass:[NSDictionary class]]) {
+                continue;
+            }
+            NSDictionary *type = (NSDictionary *)typeVal;
+            NSArray *schemes = type[@"CFBundleURLSchemes"];
+            if (!schemes || ![schemes isKindOfClass:[NSArray class]]) {
+                continue;
+            }
+            for (id schemeVal in schemes) {
+                if (![schemeVal isKindOfClass:[NSString class]]) {
+                    continue;
+                }
+                NSString *scheme = [(NSString *)schemeVal lowercaseString];
+                if ([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"]) {
+                    return true;
+                }
             }
         }
     }
@@ -59,49 +71,42 @@ QString getChromiumConfigDirForBundle(const QString &bundlePath) {
     if (!QFile::exists(plistPath)) {
         return {};
     }
-    QProcess proc;
-    proc.setProgram(QStringLiteral("plutil"));
-    proc.setArguments({QStringLiteral("-convert"),
-                       QStringLiteral("json"),
-                       QStringLiteral("-r"),
-                       QStringLiteral("-o"),
-                       QStringLiteral("-"),
-                       plistPath});
-    proc.start(QProcess::ReadOnly);
-    if (!proc.waitForFinished(5000) || proc.exitStatus() != QProcess::NormalExit ||
-        proc.exitCode() != 0) {
-        return {};
+    const QString supportBase =
+        QDir::homePath() + QStringLiteral("/Library/Application Support/");
+    @autoreleasepool {
+        NSDictionary *root = loadPlist(plistPath);
+        if (!root) {
+            return {};
+        }
+        NSString *crProductDir = root[@"CrProductDirName"];
+        if (crProductDir && [crProductDir isKindOfClass:[NSString class]] &&
+            [crProductDir length] > 0) {
+            return supportBase + stringFromNSString(crProductDir);
+        }
+        NSString *appName = root[@"CFBundleName"];
+        if (!appName || ![appName isKindOfClass:[NSString class]] || [appName length] == 0) {
+            appName = root[@"CFBundleExecutable"];
+        }
+        if (!appName || ![appName isKindOfClass:[NSString class]] || [appName length] == 0) {
+            return {};
+        }
+        QString appNameQ = stringFromNSString(appName);
+        QString dirName;
+        if (appNameQ == QStringLiteral("Google Chrome")) {
+            dirName = QStringLiteral("Google/Chrome");
+        } else if (appNameQ == QStringLiteral("Chromium")) {
+            dirName = QStringLiteral("Chromium");
+        } else if (appNameQ.contains(QStringLiteral("Chrome"))) {
+            dirName = QStringLiteral("Google/") + appNameQ;
+        } else if (appNameQ.contains(QStringLiteral("Brave"), Qt::CaseInsensitive)) {
+            dirName = QStringLiteral("BraveSoftware/Brave-Browser");
+        } else if (appNameQ.contains(QStringLiteral("Edge"), Qt::CaseInsensitive)) {
+            dirName = QStringLiteral("Microsoft Edge");
+        } else {
+            return {};
+        }
+        return supportBase + dirName;
     }
-    const auto json = QJsonDocument::fromJson(proc.readAllStandardOutput());
-    if (!json.isObject()) {
-        return {};
-    }
-    const auto root = json.object();
-    auto dirName = root.value(QStringLiteral("CrProductDirName")).toString();
-    if (!dirName.isEmpty()) {
-        return QDir::homePath() + QStringLiteral("/Library/Application Support/") + dirName;
-    }
-    auto appName = root.value(QStringLiteral("CFBundleName")).toString();
-    if (appName.isEmpty()) {
-        appName = root.value(QStringLiteral("CFBundleExecutable")).toString();
-    }
-    if (appName.isEmpty()) {
-        return {};
-    }
-    if (appName == QStringLiteral("Google Chrome")) {
-        dirName = QStringLiteral("Google/Chrome");
-    } else if (appName == QStringLiteral("Chromium")) {
-        dirName = QStringLiteral("Chromium");
-    } else if (appName.contains(QStringLiteral("Chrome"))) {
-        dirName = QStringLiteral("Google/") + appName;
-    } else if (appName.contains(QStringLiteral("Brave"), Qt::CaseInsensitive)) {
-        dirName = QStringLiteral("BraveSoftware/Brave-Browser");
-    } else if (appName.contains(QStringLiteral("Edge"), Qt::CaseInsensitive)) {
-        dirName = QStringLiteral("Microsoft Edge");
-    } else {
-        return {};
-    }
-    return QDir::homePath() + QStringLiteral("/Library/Application Support/") + dirName;
 }
 
 QString getFirefoxConfigDir() {
@@ -170,24 +175,17 @@ QString getBundleIdentifier(const QString &bundlePath) {
     if (!QFile::exists(plistPath)) {
         return {};
     }
-    QProcess proc;
-    proc.setProgram(QStringLiteral("plutil"));
-    proc.setArguments({QStringLiteral("-convert"),
-                       QStringLiteral("json"),
-                       QStringLiteral("-r"),
-                       QStringLiteral("-o"),
-                       QStringLiteral("-"),
-                       plistPath});
-    proc.start(QProcess::ReadOnly);
-    if (!proc.waitForFinished(5000) || proc.exitStatus() != QProcess::NormalExit ||
-        proc.exitCode() != 0) {
-        return {};
+    @autoreleasepool {
+        NSDictionary *root = loadPlist(plistPath);
+        if (!root) {
+            return {};
+        }
+        id value = root[@"CFBundleIdentifier"];
+        if (![value isKindOfClass:[NSString class]]) {
+            return {};
+        }
+        return stringFromNSString((NSString *)value);
     }
-    const auto json = QJsonDocument::fromJson(proc.readAllStandardOutput());
-    if (!json.isObject()) {
-        return {};
-    }
-    return json.object().value(QStringLiteral("CFBundleIdentifier")).toString();
 }
 
 } // anonymous namespace
