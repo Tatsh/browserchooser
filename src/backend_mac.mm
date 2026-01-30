@@ -192,8 +192,8 @@ QString getBundleIdentifier(const QString &bundlePath) {
 QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
     QList<BrowserOption> options;
     const QStringList appDirs = {
-        QStringLiteral("/Applications"),
         QDir::homePath() + QStringLiteral("/Applications"),
+        QStringLiteral("/Applications"),
     };
     const auto hideProfileBrowsers =
         readCommaSeparatedList(QStringLiteral("Advanced/hideProfileBrowsers"));
