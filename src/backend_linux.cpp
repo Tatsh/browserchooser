@@ -95,12 +95,13 @@ QList<ProfilePair> getFirefoxProfiles(const QString &configDir) {
         return {};
     }
     QSettings ini(path, QSettings::IniFormat);
-    QList<ProfilePair> pairs;
-    pairs.append({QString(), QString()});
+    int profileCount = 0;
+    QList<ProfilePair> nonDefaultPairs;
     for (const auto &group : ini.childGroups()) {
         if (!group.startsWith(QStringLiteral("Profile"))) {
             continue;
         }
+        ++profileCount;
         ini.beginGroup(group);
         auto name = ini.value(QStringLiteral("Name")).toString();
         auto isDefault = ini.value(QStringLiteral("Default")).toInt() == 1;
@@ -108,7 +109,15 @@ QList<ProfilePair> getFirefoxProfiles(const QString &configDir) {
         if (name.isEmpty() || isDefault) {
             continue;
         }
-        pairs.append({name, name});
+        nonDefaultPairs.append({name, name});
+    }
+    if (profileCount <= 1) {
+        return {{QString(), QString()}};
+    }
+    QList<ProfilePair> pairs;
+    pairs.append({QString(), QString()});
+    for (const auto &pair : nonDefaultPairs) {
+        pairs.append(pair);
     }
     return pairs;
 }
