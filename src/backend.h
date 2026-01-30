@@ -92,3 +92,38 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls = QStrin
  * Sorts browser options by display name (case-insensitive).
  */
 void sortBrowserOptionsByDisplayName(QList<BrowserOption> &options);
+
+/**
+ * Returns the pre-launch commands from config for the given browser or browser+profile.
+ * Key is the same as RememberedBrowsers: @p desktopPath, or @p desktopPath + @c "|" + @p profileName.
+ * Under group @c PreLaunchCommands. Value is a JSON array of arrays of strings.
+ * If no entry for browser+profile, falls back to browser-only (desktopPath). Run before launch; each runs synchronously.
+ */
+[[nodiscard]] QList<QStringList> getPreLaunchCommands(const QString &desktopPath,
+                                                      const QString &profileName);
+
+/**
+ * Returns the post-launch commands from config for the given browser or browser+profile.
+ * Key is the same as RememberedBrowsers: @p desktopPath, or @p desktopPath + @c "|" + @p profileName.
+ * Under group @c PostLaunchCommands. Value is a JSON array of arrays of strings.
+ * If no entry for browser+profile, falls back to browser-only (desktopPath). Run after launch; each runs detached.
+ */
+[[nodiscard]] QList<QStringList> getPostLaunchCommands(const QString &desktopPath,
+                                                       const QString &profileName);
+
+/**
+ * Runs a launch-hook command (pre or post). Executes @p argv directly (no shell).
+ * @param argv Program as first element, then arguments. Empty or single empty string is a no-op.
+ * @param wait If true, block until the command exits; if false, start detached.
+ */
+void runLaunchHookCommand(const QStringList &argv, bool wait);
+
+/**
+ * Runs all pre-launch commands for the given browser or browser+profile (synchronously).
+ */
+void runPreLaunchCommands(const QString &desktopPath, const QString &profileName);
+
+/**
+ * Runs all post-launch commands for the given browser or browser+profile (detached).
+ */
+void runPostLaunchCommands(const QString &desktopPath, const QString &profileName);

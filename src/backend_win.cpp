@@ -178,6 +178,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
 }
 
 void launchBrowser(const BrowserOption &option, const QStringList &urls) {
+    runPreLaunchCommands(option.desktopPath(), option.profileName());
     const auto exePath = option.desktopPath();
     if (!exePath.endsWith(QStringLiteral(".exe"), Qt::CaseInsensitive) || !QFile::exists(exePath)) {
         return;
@@ -192,6 +193,7 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls) {
     }
     args << urls;
     QProcess::startDetached(exePath, args);
+    runPostLaunchCommands(option.desktopPath(), option.profileName());
 }
 
 QString getCommandLineForDisplay(const BrowserOption &option, const QString &url) {

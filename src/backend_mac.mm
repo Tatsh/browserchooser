@@ -261,6 +261,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
 }
 
 void launchBrowser(const BrowserOption &option, const QStringList &urls) {
+    runPreLaunchCommands(option.desktopPath(), option.profileName());
     const auto bundlePath = option.desktopPath();
     if (!bundlePath.endsWith(QStringLiteral(".app")) || !QDir(bundlePath).exists()) {
         return;
@@ -279,6 +280,7 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls) {
         args << QStringLiteral("--args") << appArgs;
     }
     QProcess::startDetached(QStringLiteral("open"), args);
+    runPostLaunchCommands(option.desktopPath(), option.profileName());
 }
 
 QString getCommandLineForDisplay(const BrowserOption &option, const QString &url) {

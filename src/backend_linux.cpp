@@ -352,6 +352,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
 }
 
 void launchBrowser(const BrowserOption &option, const QStringList &urls) {
+    runPreLaunchCommands(option.desktopPath(), option.profileName());
     auto entry = option.entry();
     if (!entry.isValid()) {
         return;
@@ -443,6 +444,7 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls) {
         }
         QProcess::startDetached(program, args);
     }
+    runPostLaunchCommands(option.desktopPath(), option.profileName());
 }
 
 QString getCommandLineForDisplay(const BrowserOption &option, const QString &url) {
