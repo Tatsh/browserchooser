@@ -71,8 +71,7 @@ QString getChromiumConfigDirForBundle(const QString &bundlePath) {
     if (!QFile::exists(plistPath)) {
         return {};
     }
-    const QString supportBase =
-        QDir::homePath() + QStringLiteral("/Library/Application Support/");
+    const QString supportBase = QDir::homePath() + QStringLiteral("/Library/Application Support/");
     @autoreleasepool {
         NSDictionary *root = loadPlist(plistPath);
         if (!root) {

@@ -50,9 +50,10 @@ bool DesktopEntry::parseAppBundle(const QString &bundlePath) {
         QString name = stringFromNSString(nameNs);
         entries_[QStringLiteral("Name")] = name;
         NSString *iconFileNs = root[@"CFBundleIconFile"];
-        icon_ = iconFileNs && [iconFileNs isKindOfClass:[NSString class]] && [iconFileNs length] > 0
-                    ? stringFromNSString(iconFileNs)
-                    : execName;
+        icon_ =
+            iconFileNs && [iconFileNs isKindOfClass:[NSString class]] && [iconFileNs length] > 0 ?
+                stringFromNSString(iconFileNs) :
+                execName;
         startupWMClass_ = QString();
         categories_ = QStringList();
         mimeTypes_ = QStringList();
