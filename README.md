@@ -30,8 +30,8 @@ remember your choice per domain.
 
 ## Features
 
-- **Cross-platform** - Linux (XDG desktop entries), macOS (`.app` bundles, native plist via
-  Foundation), and Windows (registry-based discovery).
+- **Cross-platform** - Linux (XDG desktop entries), macOS (`.app` bundles), and Windows
+  (registry-based discovery).
 - **Browser discovery** - Detects Chrome, Firefox, Edge, Brave, Chromium, Opera, Safari (macOS), and
   other common browsers.
 - **Profile support** - Lists Chrome/Chromium and Firefox profiles by name, with profile pictures
