@@ -55,3 +55,20 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls = QStrin
  */
 [[nodiscard]] QString getChromeProfileDisplayName(const QString &desktopPath,
                                                   const QString &profileId);
+
+/**
+ * Resolves the full path to the Chrome/Chromium profile picture (gaia_picture_file_name in Local State).
+ * @param desktopPath Path to the @c .desktop file (Linux) or backend-specific identifier.
+ * @param profileId Profile identifier.
+ * @return Full path to the picture file, or empty if not found or not applicable.
+ */
+[[nodiscard]] QString getChromeProfilePicturePath(const QString &desktopPath,
+                                                  const QString &profileId);
+
+/**
+ * Returns the Chrome/Chromium user data directory for the given browser path.
+ * Used by getChromeProfileDisplayName and getChromeProfilePicturePath.
+ * @param desktopPath Path to the @c .desktop file (Linux), .app (macOS), or .exe (Windows).
+ * @return User data directory path, or empty if not Chrome/Chromium or not found.
+ */
+[[nodiscard]] QString getChromeUserDataDir(const QString &desktopPath);

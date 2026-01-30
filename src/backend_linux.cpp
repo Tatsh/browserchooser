@@ -13,7 +13,6 @@
 
 #include "backend.h"
 #include "browseroption.h"
-#include "chrome_profile.h"
 #include "desktopentry.h"
 
 namespace {
@@ -503,10 +502,7 @@ QString getConfigFilePath() {
     return configDir + QStringLiteral("/browserchooserrc");
 }
 
-QString getChromeProfileDisplayName(const QString &desktopPath, const QString &profileId) {
-    if (profileId == QStringLiteral("Guest")) {
-        return QStringLiteral("Guest");
-    }
+QString getChromeUserDataDir(const QString &desktopPath) {
     auto entryOpt = readDesktopEntry(desktopPath);
     if (!entryOpt.has_value()) {
         return {};
@@ -516,6 +512,5 @@ QString getChromeProfileDisplayName(const QString &desktopPath, const QString &p
         return {};
     }
     auto configDirName = getChromiumConfigDirName(exeName);
-    auto userDataDir = getChromeConfigBasePath() + QLatin1Char('/') + configDirName;
-    return getChromeProfileDisplayNameFromUserDataDir(userDataDir, profileId);
+    return getChromeConfigBasePath() + QLatin1Char('/') + configDirName;
 }

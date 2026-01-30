@@ -1,4 +1,4 @@
-set(BACKEND_SOURCES)
+set(BACKEND_SOURCES backend_common.cpp)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     list(APPEND BACKEND_SOURCES backend_linux.cpp)
 elseif(WIN32)

@@ -5,9 +5,13 @@
 #include <QtCore/QStandardPaths>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QIcon>
+#include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
+#include <QtGui/QPixmap>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGridLayout>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QToolButton>
@@ -19,6 +23,26 @@
 #include "selectorwidget.h"
 
 namespace {
+
+/** Returns an icon with the image at @a path masked to a circle of @a size pixels. */
+QIcon iconFromPathMaskedAsCircle(const QString &path, int size) {
+    QPixmap source(path);
+    if (source.isNull()) {
+        return QIcon();
+    }
+    QPixmap out(size, size);
+    out.fill(Qt::transparent);
+    QPainter painter(&out);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform);
+    QPainterPath clipPath;
+    clipPath.addEllipse(0, 0, size, size);
+    painter.setClipPath(clipPath);
+    painter.drawPixmap(0, 0, size, size,
+                      source.scaled(size, size, Qt::KeepAspectRatioByExpanding,
+                                    Qt::SmoothTransformation));
+    painter.end();
+    return QIcon(out);
+}
 
 QString formatBrowserInfoHtml(const QString &commandLine, const QString &desktopPath) {
     const auto nowrap = QStringLiteral("<span style='white-space: nowrap;'>");
@@ -109,14 +133,48 @@ void SelectorWidget::setupWindow() {
 
     const auto kSectionHeaderStyle =
         QStringLiteral("font-weight: bold; font-size: 13px; margin-top: 2px; margin-bottom: 8px;");
+    const auto kSectionHeaderIconSize = 16;
+    const auto kSectionHeaderContentOffset = kSectionHeaderIconSize + 6;
     const auto kSectionSpacing = 12;
+    const auto kSectionHeaderIconNudge = 5;
+    auto createSectionHeader = [kSectionHeaderStyle,
+                               kSectionHeaderIconSize,
+                               kSectionHeaderIconNudge](const QString &text,
+                                                         const QIcon &icon,
+                                                         QWidget *parent) -> QWidget * {
+        auto *w = new QWidget(parent);
+        auto *layout = new QHBoxLayout(w);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(6);
+        layout->setAlignment(Qt::AlignVCenter);
+        if (!icon.isNull()) {
+            auto *iconContainer = new QWidget(w);
+            iconContainer->setFixedSize(kSectionHeaderIconSize,
+                                       kSectionHeaderIconSize + kSectionHeaderIconNudge);
+            auto *iconLayout = new QVBoxLayout(iconContainer);
+            iconLayout->setContentsMargins(0, 0, 0, 0);
+            iconLayout->setSpacing(0);
+            auto *iconLabel = new QLabel(iconContainer);
+            iconLabel->setPixmap(
+                icon.pixmap(kSectionHeaderIconSize, kSectionHeaderIconSize));
+            iconLabel->setFixedSize(kSectionHeaderIconSize, kSectionHeaderIconSize);
+            iconLayout->addWidget(iconLabel, 0, Qt::AlignTop | Qt::AlignHCenter);
+            layout->addWidget(iconContainer, 0, Qt::AlignVCenter);
+        }
+        auto *label = new QLabel(text, w);
+        label->setStyleSheet(kSectionHeaderStyle);
+        layout->addWidget(label, 1, Qt::AlignVCenter);
+        return w;
+    };
     auto addSection = [this,
                        &browsers,
                        outerLayout,
-                       kSectionHeaderStyle,
+                       createSectionHeader,
+                       kSectionHeaderContentOffset,
                        columnsPerRow,
                        &makePlaceholder](const QString &header,
                                          const QList<int> &indices,
+                                         const QIcon &headerIcon,
                                          bool inSection = false,
                                          bool sortDefaultFirst = false,
                                          bool browserNameOnly = false) {
@@ -134,10 +192,9 @@ void SelectorWidget::setupWindow() {
                 return a < b;
             });
         }
-        auto *label = new QLabel(header, this);
-        label->setStyleSheet(kSectionHeaderStyle);
-        outerLayout->addWidget(label);
+        outerLayout->addWidget(createSectionHeader(header, headerIcon, this));
         auto *grid = new QGridLayout();
+        grid->setContentsMargins(kSectionHeaderContentOffset, 0, 0, 0);
         grid->setSpacing(10);
         for (auto j = 0; j < sorted.size(); ++j) {
             auto browserIndex = sorted[j];
@@ -167,17 +224,33 @@ void SelectorWidget::setupWindow() {
         return a.first.compare(b.first, Qt::CaseInsensitive) < 0;
     });
     for (const auto &pair : multiProfile) {
-        addSection(pair.first, pair.second, true, true, false);
+        QIcon browserIcon;
+        const auto entry = browsers[pair.second.first()].entry();
+        const auto iconPath = findIconPath(entry.icon());
+        if (!iconPath.isEmpty()) {
+            browserIcon = QIcon(iconPath);
+        } else {
+            browserIcon = QIcon::fromTheme(entry.icon());
+        }
+        addSection(pair.first, pair.second, browserIcon, true, true, false);
     }
-    addSection(tr("Other browsers"), otherIndices, false, false, true);
+    QIcon webIcon = QIcon::fromTheme(QStringLiteral("applications-internet"));
+    if (webIcon.isNull()) {
+        webIcon = QIcon::fromTheme(QStringLiteral("web-browser"));
+    }
+    addSection(tr("Other browsers"), otherIndices, webIcon, false, false, true);
     if (!guestIndices.isEmpty()) {
         guestSectionWidget_ = new QWidget(this);
         auto *guestLayout = new QVBoxLayout(guestSectionWidget_);
         guestLayout->setContentsMargins(0, 0, 0, 0);
-        auto *guestLabel = new QLabel(tr("Guest profiles"), guestSectionWidget_);
-        guestLabel->setStyleSheet(kSectionHeaderStyle);
-        guestLayout->addWidget(guestLabel);
+        QIcon userIcon = QIcon::fromTheme(QStringLiteral("user-identity"));
+        if (userIcon.isNull()) {
+            userIcon = QIcon::fromTheme(QStringLiteral("user"));
+        }
+        guestLayout->addWidget(
+            createSectionHeader(tr("Guest profiles"), userIcon, guestSectionWidget_));
         auto *guestGrid = new QGridLayout();
+        guestGrid->setContentsMargins(kSectionHeaderContentOffset, 0, 0, 0);
         guestGrid->setSpacing(10);
         for (auto j = 0; j < guestIndices.size(); ++j) {
             auto browserIndex = guestIndices[j];
@@ -299,13 +372,36 @@ auto SelectorWidget::createBrowserEntry(const BrowserOption &option,
     button->setToolButtonStyle(Qt::ToolButtonIconOnly);
     button->setFixedSize(kIconSize + 16, kIconSize + 16);
     button->setIconSize(QSize(kIconSize, kIconSize));
-    auto iconPath = findIconPath(entry.icon());
-    if (!iconPath.isEmpty()) {
-        button->setIcon(QIcon(iconPath));
+    const auto pathLower = option.desktopPath().toLower();
+    const bool isChromeProfile =
+        option.profileName() != QStringLiteral("Guest")
+        && (pathLower.contains(QStringLiteral("chrome"))
+            || pathLower.contains(QStringLiteral("chromium")));
+    QIcon iconToUse;
+    if (isChromeProfile) {
+        const auto picturePath =
+            getChromeProfilePicturePath(option.desktopPath(), option.profileName());
+        if (!picturePath.isEmpty()) {
+            iconToUse = iconFromPathMaskedAsCircle(picturePath, kIconSize);
+        }
+        if (iconToUse.isNull()) {
+            iconToUse = QIcon::fromTheme(QStringLiteral("user-identity"));
+        }
+        if (iconToUse.isNull()) {
+            iconToUse = QIcon::fromTheme(QStringLiteral("user"));
+        }
+    }
+    if (!iconToUse.isNull()) {
+        button->setIcon(iconToUse);
     } else {
-        auto icon = QIcon::fromTheme(entry.icon());
-        if (!icon.isNull()) {
-            button->setIcon(icon);
+        auto iconPath = findIconPath(entry.icon());
+        if (!iconPath.isEmpty()) {
+            button->setIcon(QIcon(iconPath));
+        } else {
+            auto icon = QIcon::fromTheme(entry.icon());
+            if (!icon.isNull()) {
+                button->setIcon(icon);
+            }
         }
     }
     const auto commandLine = getCommandLineForDisplay(option, chooser_->urlToOpen());

@@ -12,7 +12,6 @@
 
 #include "backend.h"
 #include "browseroption.h"
-#include "chrome_profile.h"
 #include "desktopentry.h"
 
 #include <windows.h>
@@ -179,18 +178,11 @@ QString getConfigFilePath() {
     return configDir + QStringLiteral("/browserchooserrc");
 }
 
-QString getChromeProfileDisplayName(const QString &desktopPath, const QString &profileId) {
-    if (profileId == QStringLiteral("Guest")) {
-        return QStringLiteral("Guest");
-    }
+QString getChromeUserDataDir(const QString &desktopPath) {
     if (!desktopPath.endsWith(QStringLiteral(".exe"), Qt::CaseInsensitive)) {
         return {};
     }
-    const auto userDataDir = getChromeUserDataDirForExe(desktopPath);
-    if (userDataDir.isEmpty() || !QFile::exists(userDataDir + QStringLiteral("/Local State"))) {
-        return {};
-    }
-    return getChromeProfileDisplayNameFromUserDataDir(userDataDir, profileId);
+    return getChromeUserDataDirForExe(desktopPath);
 }
 
 #endif // Q_OS_WIN
