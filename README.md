@@ -15,7 +15,7 @@
 **Pick which browser—and which profile—to use when opening a link.**
 
 Set Browser Chooser to your default browser and when you click on URLs in non-browsers, it will
-display a simple dialog so you can choose the right browser or profile to use, and optionally
+display a simple dialogue so you can choose the right browser or profile to use, and optionally
 remember your choice per domain.
 
 ## Why use this?

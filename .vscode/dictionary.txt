@@ -12,6 +12,7 @@ bytearray
 commitizen
 coveragerc
 ctad
+datarootdir
 dbuild
 desktopentry
 docstrings
