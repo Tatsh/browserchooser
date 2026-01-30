@@ -8,8 +8,7 @@ QString getChromeProfileDisplayName(const QString &desktopPath, const QString &p
         return QStringLiteral("Guest");
     }
     const auto userDataDir = getChromeUserDataDir(desktopPath);
-    if (userDataDir.isEmpty()
-        || !QFile::exists(userDataDir + QStringLiteral("/Local State"))) {
+    if (userDataDir.isEmpty() || !QFile::exists(userDataDir + QStringLiteral("/Local State"))) {
         return {};
     }
     return getChromeProfileDisplayNameFromUserDataDir(userDataDir, profileId);
@@ -20,8 +19,7 @@ QString getChromeProfilePicturePath(const QString &desktopPath, const QString &p
         return {};
     }
     const auto userDataDir = getChromeUserDataDir(desktopPath);
-    if (userDataDir.isEmpty()
-        || !QFile::exists(userDataDir + QStringLiteral("/Local State"))) {
+    if (userDataDir.isEmpty() || !QFile::exists(userDataDir + QStringLiteral("/Local State"))) {
         return {};
     }
     return getChromeProfilePicturePathFromUserDataDir(userDataDir, profileId);

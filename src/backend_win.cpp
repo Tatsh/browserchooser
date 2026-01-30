@@ -7,9 +7,9 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QProcess>
+#include <QtCore/QSet>
 #include <QtCore/QSettings>
 #include <QtCore/QStandardPaths>
-#include <QtCore/QSet>
 
 #include "backend.h"
 #include "browseroption.h"
@@ -20,8 +20,7 @@
 
 namespace {
 
-constexpr const wchar_t *kAppPathsKey =
-    L"Software\\Microsoft\\Windows\\CurrentVersion\\App Paths";
+constexpr const wchar_t *kAppPathsKey = L"Software\\Microsoft\\Windows\\CurrentVersion\\App Paths";
 
 const QStringList kBrowserExeNames = {
     QStringLiteral("chrome.exe"),
@@ -42,8 +41,8 @@ QString getAppPathFromRegistry(HKEY hive, const QString &exeName) {
     }
     wchar_t pathBuf[MAX_PATH] = {};
     DWORD pathLen = sizeof(pathBuf);
-    const auto err = RegQueryValueExW(key, nullptr, nullptr, nullptr,
-                                      reinterpret_cast<LPBYTE>(pathBuf), &pathLen);
+    const auto err = RegQueryValueExW(
+        key, nullptr, nullptr, nullptr, reinterpret_cast<LPBYTE>(pathBuf), &pathLen);
     RegCloseKey(key);
     if (err != ERROR_SUCCESS) {
         return {};
@@ -75,7 +74,8 @@ QString getChromeUserDataDirForExe(const QString &exePath) {
     const auto exeDir = QFileInfo(exePath).absolutePath();
     const auto dirName = QFileInfo(exeDir).fileName();
     if (dirName.compare(QStringLiteral("Application"), Qt::CaseInsensitive) == 0) {
-        const auto userDataDir = QDir::cleanPath(QDir(exeDir).filePath(QStringLiteral("../User Data")));
+        const auto userDataDir =
+            QDir::cleanPath(QDir(exeDir).filePath(QStringLiteral("../User Data")));
         if (QFile::exists(userDataDir + QStringLiteral("/Local State"))) {
             return userDataDir;
         }
@@ -111,15 +111,13 @@ QString getFirefoxConfigDir() {
 
 bool isFirefoxExe(const QString &exePath) {
     return QFileInfo(exePath).fileName().compare(QStringLiteral("firefox.exe"),
-                                                  Qt::CaseInsensitive)
-           == 0;
+                                                 Qt::CaseInsensitive) == 0;
 }
 
 // Reads a comma-separated list from the config file (used for Advanced/hideProfileBrowsers
 // and Advanced/hideBrowsers). Identifiers can be exe base names (e.g. firefox) or full canonical paths.
 QStringList readCommaSeparatedList(const QString &key) {
-    const auto raw =
-        QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString();
+    const auto raw = QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString();
     auto list = raw.split(QLatin1Char(','), Qt::SkipEmptyParts);
     for (auto &s : list) {
         s = s.trimmed();
@@ -188,9 +186,9 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
     const auto hideProfileBrowsers =
         readCommaSeparatedList(QStringLiteral("Advanced/hideProfileBrowsers"));
     const auto firefoxConfigDir = getFirefoxConfigDir();
-    const auto firefoxProfiles = QDir(firefoxConfigDir).exists()
-                                    ? getFirefoxProfiles(firefoxConfigDir)
-                                    : QList<FirefoxProfilePair>();
+    const auto firefoxProfiles = QDir(firefoxConfigDir).exists() ?
+                                     getFirefoxProfiles(firefoxConfigDir) :
+                                     QList<FirefoxProfilePair>();
     for (const auto &exePath : paths) {
         DesktopEntry entry;
         if (!entry.parseFromExecutable(exePath)) {
@@ -200,16 +198,15 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
         const auto canonicalExePath = QFileInfo(exePath).canonicalFilePath();
         const auto resolvedExePath = canonicalExePath.isEmpty() ? exePath : canonicalExePath;
         const bool skipFirefoxProfiles =
-            isFirefoxExe(exePath)
-            && (listContainsIdentifier(hideProfileBrowsers, QStringLiteral("firefox"))
-                || listContainsIdentifier(hideProfileBrowsers, resolvedExePath));
+            isFirefoxExe(exePath) &&
+            (listContainsIdentifier(hideProfileBrowsers, QStringLiteral("firefox")) ||
+             listContainsIdentifier(hideProfileBrowsers, resolvedExePath));
         const bool useFirefoxProfiles =
             isFirefoxExe(exePath) && !skipFirefoxProfiles && !firefoxProfiles.isEmpty();
         if (useFirefoxProfiles) {
             const bool singleProfile = firefoxProfiles.size() == 1;
             for (const auto &pair : firefoxProfiles) {
-                options.append(
-                    BrowserOption(entry, pair.first, pair.second, singleProfile, true));
+                options.append(BrowserOption(entry, pair.first, pair.second, singleProfile, true));
             }
         } else {
             options.append(BrowserOption(entry, QString(), QString(), true, false));
@@ -218,26 +215,23 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
     std::ranges::sort(options, [](const BrowserOption &a, const BrowserOption &b) {
         return a.displayName().compare(b.displayName(), Qt::CaseInsensitive) < 0;
     });
-    const QVariant hideBrowsersVar =
-        QSettings(getConfigFilePath(), QSettings::IniFormat)
-            .value(QStringLiteral("Advanced/hideBrowsers"));
-    QStringList hideBrowsers =
-        hideBrowsersVar.isNull() || !hideBrowsersVar.isValid()
-            ? QStringList{QStringLiteral("iexplore")}
-            : readCommaSeparatedList(QStringLiteral("Advanced/hideBrowsers"));
+    const QVariant hideBrowsersVar = QSettings(getConfigFilePath(), QSettings::IniFormat)
+                                         .value(QStringLiteral("Advanced/hideBrowsers"));
+    QStringList hideBrowsers = hideBrowsersVar.isNull() || !hideBrowsersVar.isValid() ?
+                                   QStringList{QStringLiteral("iexplore")} :
+                                   readCommaSeparatedList(QStringLiteral("Advanced/hideBrowsers"));
     options.removeIf([&hideBrowsers](const BrowserOption &opt) {
         const auto baseName = exeBaseName(opt.desktopPath());
         const auto canonicalPath = getCanonicalBrowserPath(opt);
-        return listContainsIdentifier(hideBrowsers, baseName)
-               || listContainsIdentifier(hideBrowsers, canonicalPath);
+        return listContainsIdentifier(hideBrowsers, baseName) ||
+               listContainsIdentifier(hideBrowsers, canonicalPath);
     });
     return options;
 }
 
 void launchBrowser(const BrowserOption &option, const QStringList &urls) {
     const auto exePath = option.desktopPath();
-    if (!exePath.endsWith(QStringLiteral(".exe"), Qt::CaseInsensitive) ||
-        !QFile::exists(exePath)) {
+    if (!exePath.endsWith(QStringLiteral(".exe"), Qt::CaseInsensitive) || !QFile::exists(exePath)) {
         return;
     }
     QStringList args;
@@ -252,8 +246,8 @@ QString getCommandLineForDisplay(const BrowserOption &option, const QString &url
     const auto exePath = option.desktopPath();
     QString cmd = quoteArg(exePath);
     if (!option.profileName().isEmpty()) {
-        cmd += QLatin1Char(' ') + quoteArg(QStringLiteral("-P"))
-             + QLatin1Char(' ') + quoteArg(option.profileName());
+        cmd += QLatin1Char(' ') + quoteArg(QStringLiteral("-P")) + QLatin1Char(' ') +
+               quoteArg(option.profileName());
     }
     if (!url.isEmpty()) {
         cmd += QLatin1Char(' ') + quoteArg(url);
@@ -266,8 +260,7 @@ QString getExecutablePath(const BrowserOption &option) {
 }
 
 QString getConfigFilePath() {
-    const auto configDir =
-        QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    const auto configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     return configDir + QStringLiteral("/browserchooserrc");
 }
 

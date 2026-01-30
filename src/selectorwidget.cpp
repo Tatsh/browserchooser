@@ -1,10 +1,13 @@
 #include <ranges>
 
+#include <QtGui/QDesktopServices>
 #include <QtCore/QDir>
 #include <QtCore/QMap>
 #include <QtCore/QStandardPaths>
+#include <QtCore/QUrl>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QIcon>
+#include <QtGui/QKeyEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QPixmap>
@@ -37,9 +40,12 @@ QIcon iconFromPathMaskedAsCircle(const QString &path, int size) {
     QPainterPath clipPath;
     clipPath.addEllipse(0, 0, size, size);
     painter.setClipPath(clipPath);
-    painter.drawPixmap(0, 0, size, size,
-                      source.scaled(size, size, Qt::KeepAspectRatioByExpanding,
-                                    Qt::SmoothTransformation));
+    painter.drawPixmap(
+        0,
+        0,
+        size,
+        size,
+        source.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
     painter.end();
     return QIcon(out);
 }
@@ -137,11 +143,9 @@ void SelectorWidget::setupWindow() {
     const auto kSectionHeaderContentOffset = kSectionHeaderIconSize + 6;
     const auto kSectionSpacing = 12;
     const auto kSectionHeaderIconNudge = 5;
-    auto createSectionHeader = [kSectionHeaderStyle,
-                               kSectionHeaderIconSize,
-                               kSectionHeaderIconNudge](const QString &text,
-                                                         const QIcon &icon,
-                                                         QWidget *parent) -> QWidget * {
+    auto createSectionHeader =
+        [kSectionHeaderStyle, kSectionHeaderIconSize, kSectionHeaderIconNudge](
+            const QString &text, const QIcon &icon, QWidget *parent) -> QWidget * {
         auto *w = new QWidget(parent);
         auto *layout = new QHBoxLayout(w);
         layout->setContentsMargins(0, 0, 0, 0);
@@ -150,13 +154,12 @@ void SelectorWidget::setupWindow() {
         if (!icon.isNull()) {
             auto *iconContainer = new QWidget(w);
             iconContainer->setFixedSize(kSectionHeaderIconSize,
-                                       kSectionHeaderIconSize + kSectionHeaderIconNudge);
+                                        kSectionHeaderIconSize + kSectionHeaderIconNudge);
             auto *iconLayout = new QVBoxLayout(iconContainer);
             iconLayout->setContentsMargins(0, 0, 0, 0);
             iconLayout->setSpacing(0);
             auto *iconLabel = new QLabel(iconContainer);
-            iconLabel->setPixmap(
-                icon.pixmap(kSectionHeaderIconSize, kSectionHeaderIconSize));
+            iconLabel->setPixmap(icon.pixmap(kSectionHeaderIconSize, kSectionHeaderIconSize));
             iconLabel->setFixedSize(kSectionHeaderIconSize, kSectionHeaderIconSize);
             iconLayout->addWidget(iconLabel, 0, Qt::AlignTop | Qt::AlignHCenter);
             layout->addWidget(iconContainer, 0, Qt::AlignVCenter);
@@ -249,20 +252,16 @@ void SelectorWidget::setupWindow() {
         otherGrid->setSpacing(10);
         for (auto j = 0; j < otherIndices.size(); ++j) {
             auto browserIndex = otherIndices[j];
-            QWidget *entry = createBrowserEntry(
-                browsers[browserIndex], browserIndex, false, true);
+            QWidget *entry = createBrowserEntry(browsers[browserIndex], browserIndex, false, true);
             otherGrid->addWidget(
-                entry, j / columnsPerRow, j % columnsPerRow, 1, 1,
-                Qt::AlignLeft | Qt::AlignTop);
+                entry, j / columnsPerRow, j % columnsPerRow, 1, 1, Qt::AlignLeft | Qt::AlignTop);
         }
-        const auto otherLastRow =
-            static_cast<int>(otherIndices.size() - 1) / columnsPerRow;
+        const auto otherLastRow = static_cast<int>(otherIndices.size() - 1) / columnsPerRow;
         const auto otherLastRowCount =
             static_cast<int>(otherIndices.size()) - otherLastRow * columnsPerRow;
         for (auto col = otherLastRowCount; col < columnsPerRow; ++col) {
             otherGrid->addWidget(
-                makePlaceholder(), otherLastRow, col, 1, 1,
-                Qt::AlignLeft | Qt::AlignTop);
+                makePlaceholder(), otherLastRow, col, 1, 1, Qt::AlignLeft | Qt::AlignTop);
         }
         for (auto c = 0; c < columnsPerRow; ++c) {
             otherGrid->setColumnStretch(c, 0);
@@ -326,10 +325,8 @@ void SelectorWidget::setupWindow() {
     }
     if (!otherIndices.isEmpty()) {
         hideBrowsersWithoutProfilesCheckBox_ = new QCheckBox(this);
-        hideBrowsersWithoutProfilesCheckBox_->setText(
-            tr("Hide browsers without profiles"));
-        hideBrowsersWithoutProfilesCheckBox_->setChecked(
-            chooser_->hideBrowsersWithoutProfiles());
+        hideBrowsersWithoutProfilesCheckBox_->setText(tr("Hide browsers without profiles"));
+        hideBrowsersWithoutProfilesCheckBox_->setChecked(chooser_->hideBrowsersWithoutProfiles());
         connect(hideBrowsersWithoutProfilesCheckBox_,
                 &QCheckBox::toggled,
                 this,
@@ -357,6 +354,16 @@ void SelectorWidget::closeEvent(QCloseEvent *event) {
         chooser_->setRememberChoiceChecked(rememberCheckBox_->isChecked());
     }
     DraggablePopup::closeEvent(event);
+}
+
+void SelectorWidget::keyPressEvent(QKeyEvent *event) {
+    if (event->key() == Qt::Key_F1) {
+        QDesktopServices::openUrl(QUrl(QStringLiteral(
+            "https://github.com/Tatsh/browserchooser/?tab=readme-ov-file#browser-chooser")));
+        event->accept();
+        return;
+    }
+    DraggablePopup::keyPressEvent(event);
 }
 
 void SelectorWidget::onShowGuestCheckBoxToggled(bool checked) {
@@ -423,10 +430,9 @@ auto SelectorWidget::createBrowserEntry(const BrowserOption &option,
     button->setFixedSize(kIconSize + 16, kIconSize + 16);
     button->setIconSize(QSize(kIconSize, kIconSize));
     const auto pathLower = option.desktopPath().toLower();
-    const bool isChromeProfile =
-        option.profileName() != QStringLiteral("Guest")
-        && (pathLower.contains(QStringLiteral("chrome"))
-            || pathLower.contains(QStringLiteral("chromium")));
+    const bool isChromeProfile = option.profileName() != QStringLiteral("Guest") &&
+                                 (pathLower.contains(QStringLiteral("chrome")) ||
+                                  pathLower.contains(QStringLiteral("chromium")));
     QIcon iconToUse;
     if (isChromeProfile) {
         const auto picturePath =

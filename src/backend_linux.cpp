@@ -93,8 +93,7 @@ bool isFirefoxExecutable(const QString &exeName) {
 // Reads a comma-separated list from the config file (used for Advanced/hideProfileBrowsers
 // and Advanced/hideBrowsers). Identifiers can be executable names (e.g. firefox) or full canonical paths.
 QStringList readCommaSeparatedList(const QString &key) {
-    const auto raw =
-        QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString();
+    const auto raw = QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString();
     auto list = raw.split(QLatin1Char(','), Qt::SkipEmptyParts);
     for (auto &s : list) {
         s = s.trimmed();
@@ -322,8 +321,8 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
             const auto canonicalExePath = QFileInfo(exePath).canonicalFilePath();
             const auto resolvedExePath = canonicalExePath.isEmpty() ? exePath : canonicalExePath;
             const bool skipProfileDiscovery =
-                listContainsIdentifier(hideProfileBrowsers, exeName)
-                || listContainsIdentifier(hideProfileBrowsers, resolvedExePath);
+                listContainsIdentifier(hideProfileBrowsers, exeName) ||
+                listContainsIdentifier(hideProfileBrowsers, resolvedExePath);
             QList<ProfilePair> profilePairs;
             auto fromProfileDiscovery = false;
             if (skipProfileDiscovery) {
@@ -393,14 +392,13 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
     std::ranges::sort(options, [](const BrowserOption &a, const BrowserOption &b) {
         return a.displayName().compare(b.displayName(), Qt::CaseInsensitive) < 0;
     });
-    const auto hideBrowsers =
-        readCommaSeparatedList(QStringLiteral("Advanced/hideBrowsers"));
+    const auto hideBrowsers = readCommaSeparatedList(QStringLiteral("Advanced/hideBrowsers"));
     if (!hideBrowsers.isEmpty()) {
         options.removeIf([&hideBrowsers](const BrowserOption &opt) {
             const auto exeName = opt.entry().executableName();
             const auto canonicalPath = getCanonicalBrowserPath(opt);
-            return listContainsIdentifier(hideBrowsers, exeName)
-                   || listContainsIdentifier(hideBrowsers, canonicalPath);
+            return listContainsIdentifier(hideBrowsers, exeName) ||
+                   listContainsIdentifier(hideBrowsers, canonicalPath);
         });
     }
     return options;

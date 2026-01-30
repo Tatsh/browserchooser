@@ -10,8 +10,8 @@
  * @param profileId Profile ID (e.g. "Default", "Profile 1"); empty means Default.
  * @return Display name for the profile, or empty if not found or file invalid.
  */
-[[nodiscard]] QString getChromeProfileDisplayNameFromUserDataDir(
-    const QString &userDataDir, const QString &profileId);
+[[nodiscard]] QString getChromeProfileDisplayNameFromUserDataDir(const QString &userDataDir,
+                                                                 const QString &profileId);
 
 /**
  * Reads the Chrome/Chromium user data dir "Local State" and returns the full path
@@ -20,5 +20,5 @@
  * @param profileId Profile ID (e.g. "Default", "Profile 1"); empty means Default.
  * @return Full path to the picture file, or empty if not found or file invalid.
  */
-[[nodiscard]] QString getChromeProfilePicturePathFromUserDataDir(
-    const QString &userDataDir, const QString &profileId);
+[[nodiscard]] QString getChromeProfilePicturePathFromUserDataDir(const QString &userDataDir,
+                                                                 const QString &profileId);
