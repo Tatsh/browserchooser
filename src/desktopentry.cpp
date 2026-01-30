@@ -22,21 +22,21 @@ bool DesktopEntry::parse(const QString &filename) {
     auto inDesktopEntry = false;
     while (!in.atEnd()) {
         auto line = in.readLine().trimmed();
-        // Skip empty lines and comments
+        // Skip empty lines and comments.
         if (line.isEmpty() || line.startsWith(QLatin1Char('#'))) {
             continue;
         }
-        // Check for group header
+        // Check for group header.
         if (line.startsWith(QLatin1Char('[')) && line.endsWith(QLatin1Char(']'))) {
             currentGroup = line.mid(1, line.length() - 2);
             inDesktopEntry = (currentGroup == QStringLiteral("Desktop Entry"));
             continue;
         }
-        // Only parse Desktop Entry group
+        // Only parse Desktop Entry group.
         if (!inDesktopEntry) {
             continue;
         }
-        // Parse key=value
+        // Parse key=value.
         auto equalsPos = line.indexOf(QLatin1Char('='));
         if (equalsPos > 0) {
             auto key = line.left(equalsPos).trimmed();
@@ -45,7 +45,7 @@ bool DesktopEntry::parse(const QString &filename) {
         }
     }
     file.close();
-    // Extract commonly used values
+    // Extract commonly used values.
     exec_ = getValue(QStringLiteral("Exec"));
     icon_ = getValue(QStringLiteral("Icon"));
     startupWMClass_ = getValue(QStringLiteral("StartupWMClass"));
@@ -61,22 +61,22 @@ QString DesktopEntry::getValue(const QString &key) const {
 }
 
 QString DesktopEntry::getLocalizedValue(const QString &key) const {
-    // Get the current locale
+    // Get the current locale.
     QLocale locale;
     auto language = locale.name(); // e.g., "en_US", "ja_JP"
 
-    // Try full locale (e.g., Name[en_US])
+    // Try full locale (e.g., Name[en_US]).
     if (auto value = getValue(QStringLiteral("%1[%2]").arg(key, language)); !value.isEmpty()) {
         return value;
     }
 
-    // Try language only (e.g., Name[en])
+    // Try language only (e.g., Name[en]).
     auto langOnly = language.split(QLatin1Char('_')).first();
     if (auto value = getValue(QStringLiteral("%1[%2]").arg(key, langOnly)); !value.isEmpty()) {
         return value;
     }
 
-    // Fall back to default (e.g., Name)
+    // Fall back to default (e.g., Name).
     return getValue(key);
 }
 
@@ -93,14 +93,42 @@ QStringList DesktopEntry::getListValue(const QString &key) const {
     if (value.isEmpty()) {
         return {};
     }
-    // Desktop files use semicolon as separator
+    // Desktop files use semicolon as separator.
     return value.split(QLatin1Char(';'), Qt::SkipEmptyParts);
 }
 
-std::expected<DesktopEntry, QString> readDesktopEntry(const QString &filename) {
+QString DesktopEntry::executableName() const {
+    if (exec_.isEmpty()) {
+        return {};
+    }
+    QString current;
+    auto inQuote = false;
+    QChar quoteChar;
+    for (auto i = 0; i < exec_.length(); ++i) {
+        auto c = exec_[i];
+        if (!inQuote && (c == QLatin1Char('"') || c == QLatin1Char('\''))) {
+            inQuote = true;
+            quoteChar = c;
+        } else if (inQuote && c == quoteChar) {
+            inQuote = false;
+        } else if (!inQuote && (c == QLatin1Char(' ') || c == QLatin1Char('%'))) {
+            if (!current.isEmpty()) {
+                return current;
+            }
+            if (c == QLatin1Char('%')) {
+                return {};
+            }
+        } else {
+            current.append(c);
+        }
+    }
+    return current;
+}
+
+std::expected<DesktopEntry, DesktopEntryError> readDesktopEntry(const QString &filename) {
     DesktopEntry entry;
     if (entry.parse(filename)) {
         return entry;
     }
-    return std::unexpected(QStringLiteral("Failed to parse desktop entry: ") + filename);
+    return std::unexpected(DesktopEntryError::ParseFailed);
 }

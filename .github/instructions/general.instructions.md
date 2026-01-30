@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-Browser Selector is a small application that allows you to choose which browser to open based on
+Browser Chooser is a small application that allows you to choose which browser to open based on
 the domain name of the link you clicked. It is useful for people who want to use different browsers
 for different purposes, such as work and personal browsing.
 

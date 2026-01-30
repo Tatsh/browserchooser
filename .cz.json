@@ -10,8 +10,8 @@
       "README.md",
       "package.json",
       "vcpkg.json",
-      "man/browserselector.1",
-      "sh.tat.browserselector.yml",
+      "man/browserchooser.1",
+      "sh.tat.browserchooser.yml",
       "src/main.cpp"
     ],
     "version_provider": "npm",

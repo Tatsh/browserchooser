@@ -1,12 +1,12 @@
 [Desktop Entry]
 Categories=Network;WebBrowser;
 Comment=Pick a browser to open a URL with.
-Exec=browserselector %U
+Exec=browserchooser %U
 GenericName=Web Browser
 Icon=browser
 MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
-Name=Browser Selector
+Name=Browser Chooser
 NoDisplay=true
-StartupWMClass=browserselector
+StartupWMClass=browserchooser
 Type=Application
 Version=0.0.1

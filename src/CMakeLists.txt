@@ -1,12 +1,14 @@
 
-add_executable(browserselector
+add_executable(browserchooser
+    browseroption.cpp
+    browseroption.h
     browserfinder.cpp
     browserfinder.h
+    browserchooser.cpp
+    browserchooser.desktop
+    browserchooser.h
     browserlauncher.cpp
     browserlauncher.h
-    browserselector.cpp
-    browserselector.desktop
-    browserselector.h
     config.cpp
     config.h
     desktopentry.cpp
@@ -20,11 +22,11 @@ add_executable(browserselector
     urlparser.h
 )
 
-target_link_libraries(browserselector PRIVATE
+target_link_libraries(browserchooser PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
 )
 
 include(GNUInstallDirs)
-install(TARGETS browserselector DESTINATION bin)
+install(TARGETS browserchooser DESTINATION bin)

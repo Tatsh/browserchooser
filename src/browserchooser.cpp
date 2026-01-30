@@ -2,29 +2,26 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
 
+#include "browserchooser.h"
 #include "browserfinder.h"
 #include "browserlauncher.h"
-#include "browserselector.h"
 #include "selectorwidget.h"
 
-BrowserSelector::BrowserSelector(const QString &urlToOpen)
+BrowserChooser::BrowserChooser(const QString &urlToOpen)
     : urlToOpen_(urlToOpen), appConfig_(), savedBrowsers_() {
     findBrowsers();
     parsedDomain_ = parseUrl(urlToOpen);
 }
 
-void BrowserSelector::findBrowsers() {
-    // Try to find browsers with current settings
+void BrowserChooser::findBrowsers() {
     availableBrowsers_ = getBrowsers(appConfig_.includeNoDisplayBrowsers());
-    // If no browsers found, try including NoDisplay browsers
     if (availableBrowsers_.isEmpty() &&
         appConfig_.includeNoDisplayBrowsers() == IncludeNoDisplay::No) {
         availableBrowsers_ = getBrowsers(IncludeNoDisplay::Yes);
     }
 }
 
-int BrowserSelector::exec() {
-    // Check for remembered browser
+int BrowserChooser::exec() {
     if (parsedDomain_.has_value()) {
         auto remembered = savedBrowsers_.getRememberedBrowser(*parsedDomain_);
         if (remembered.has_value()) {
@@ -33,48 +30,65 @@ int BrowserSelector::exec() {
         }
     }
     removeHiddenBrowsers();
-    // If no browsers after filtering, try again without filtering
     if (availableBrowsers_.isEmpty()) {
         findBrowsers();
     }
+    if (availableBrowsers_.size() == 1) {
+        openBrowser(availableBrowsers_.first());
+        return 0;
+    }
     auto argc = 0;
     QApplication app(argc, nullptr);
-    // Still no browsers - show error and exit
     if (availableBrowsers_.isEmpty()) {
-        QMessageBox::critical(nullptr,
-                              QObject::tr("Browser Selector"),
-                              QObject::tr("No web browsers found.\n\n"
-                                          "Please install a web browser with a .desktop file "
-                                          "in a standard applications directory."));
+        QMessageBox::critical(
+            nullptr, QObject::tr("Browser Chooser"), QObject::tr(R"(No web browsers found.
+
+Please install a web browser with a .desktop file in a standard applications directory.)"));
         return 1;
     }
-    // Show selector widget
+    // Show selector widget.
     SelectorWidget widget(this);
     widget.show();
     return app.exec();
 }
 
-void BrowserSelector::openBrowser(const DesktopEntry &entry) {
+void BrowserChooser::openBrowser(const BrowserOption &option) {
     QStringList urls;
     if (!urlToOpen_.isEmpty()) {
         urls.append(urlToOpen_);
     }
-    launchBrowser(entry, urls);
+    launchBrowser(option, urls);
 }
 
-void BrowserSelector::remember(const DesktopEntry &entry, const QString &domainPattern) {
+void BrowserChooser::remember(const BrowserOption &option, const QString &domainPattern) {
     auto pattern = domainPattern;
     if (pattern.isEmpty() && parsedDomain_.has_value()) {
         pattern = *parsedDomain_;
     }
     if (!pattern.isEmpty()) {
-        savedBrowsers_.remember(pattern, entry);
+        savedBrowsers_.remember(pattern, option);
     }
 }
 
-void BrowserSelector::removeHiddenBrowsers() {
+bool BrowserChooser::showGuestProfiles() const {
+    return appConfig_.showGuestProfiles();
+}
+
+void BrowserChooser::setShowGuestProfiles(bool show) {
+    appConfig_.setShowGuestProfiles(show);
+}
+
+bool BrowserChooser::rememberChoiceChecked() const {
+    return appConfig_.rememberChoiceChecked();
+}
+
+void BrowserChooser::setRememberChoiceChecked(bool checked) {
+    appConfig_.setRememberChoiceChecked(checked);
+}
+
+void BrowserChooser::removeHiddenBrowsers() {
     auto hiddenBrowsers = appConfig_.getHiddenBrowsers();
-    availableBrowsers_.removeIf([&hiddenBrowsers](const DesktopEntry &browser) {
-        return hiddenBrowsers.contains(QFileInfo(browser.filename()).completeBaseName());
+    availableBrowsers_.removeIf([&hiddenBrowsers](const BrowserOption &option) {
+        return hiddenBrowsers.contains(QFileInfo(option.entry().filename()).completeBaseName());
     });
 }

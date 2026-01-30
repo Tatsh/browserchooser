@@ -3,20 +3,20 @@
 
 #include "urlparser.h"
 
-std::expected<QString, QString> parseUrl(const QString &url) {
+std::expected<QString, ParseUrlError> parseUrl(const QString &url) {
     if (url.isEmpty()) {
-        return std::unexpected(QStringLiteral("Empty URL"));
+        return std::unexpected(ParseUrlError::EmptyUrl);
     }
     QUrl parsedUrl(url);
     auto scheme = parsedUrl.scheme();
     if (scheme == QStringLiteral("file") || scheme.isEmpty()) {
-        // For file URLs, use the filename as domain
+        // For file URLs, use the filename as domain.
         auto path = parsedUrl.path();
         if (path.isEmpty()) {
-            path = url; // Handle bare file paths
+            path = url; // Handle bare file paths.
         }
         return QFileInfo(path).fileName();
     }
-    // For web URLs, use the host as domain
+    // For web URLs, use the host as domain.
     return parsedUrl.host();
 }

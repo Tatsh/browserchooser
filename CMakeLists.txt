@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(browserselector VERSION 0.0.1 LANGUAGES CXX DESCRIPTION "A simple browser selector." HOMEPAGE_URL "https://github.com/Tatsh/browserselector")
+project(browserchooser VERSION 0.0.1 LANGUAGES CXX DESCRIPTION "A simple browser chooser." HOMEPAGE_URL "https://github.com/Tatsh/browserchooser")
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,8 +9,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-option(BROWSERSELECTOR_CXX_WARN_ALL "Do not use." OFF)
-mark_as_advanced(BROWSERSELECTOR_CXX_WARN_ALL)
+option(BROWSERCHOOSER_CXX_WARN_ALL "Do not use." OFF)
+mark_as_advanced(BROWSERCHOOSER_CXX_WARN_ALL)
 
 find_package(ECM NO_MODULE REQUIRED)
 list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
@@ -35,16 +35,23 @@ add_compile_options($<$<AND:$<CXX_COMPILER_ID:Clang,GNU>,$<BOOL:${COVERAGE}>>:--
 add_link_options($<$<AND:$<CXX_COMPILER_ID:Clang,GNU>,$<BOOL:${COVERAGE}>>:--coverage>)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND BROWSERSELECTOR_CXX_WARN_ALL)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND BROWSERCHOOSER_CXX_WARN_ALL)
     add_compile_options(
       -fsafe-buffer-usage-suggestions
       -Weverything
       -Wno-c++98-compat
       -Wno-c++98-compat-pedantic
-      -Wno-ctad-maybe-unsupported
+      -Wno-covered-switch-default # Conflicts with -Wswitch-default.
+      -Wno-ctad-maybe-unsupported # Qt's moc uses CTAD without deduction guides.
+      -Wno-deprecated-copy-with-user-provided-dtor
       -Wno-exit-time-destructors
       -Wno-global-constructors
-      -Wno-padded)
+      -Wno-inconsistent-missing-destructor-override
+      -Wno-nrvo # Conflicts with -Wpessimizing-move in some cases.
+      -Wno-padded
+      -Wno-redundant-parens
+      -Wno-unsafe-buffer-usage # Qt moc uses strcmp.
+      -Wno-unsafe-buffer-usage-in-libc-call) # Qt moc uses strcmp.
   endif()
 endif()
 

@@ -1,6 +1,6 @@
-# How to contribute to browserselector
+# How to contribute to browserchooser
 
-Thank you for your interest in contributing to Browser Selector! Please follow these guidelines to
+Thank you for your interest in contributing to Browser Chooser! Please follow these guidelines to
 help maintain code quality and consistency.
 
 ## General Guidelines

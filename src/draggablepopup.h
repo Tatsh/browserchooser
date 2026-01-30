@@ -1,13 +1,14 @@
+/** @file */
 #pragma once
 
 #include <QtWidgets/QWidget>
 
 /**
  * A frameless, draggable popup widget with the following features:
- * - No titlebar (frameless)
- * - Escape key quits the application
- * - Dragging empty areas of the window moves it
- * - Stays on top of other windows
+ * - No titlebar (frameless).
+ * - Escape key quits the application.
+ * - Dragging empty areas of the window moves it.
+ * - Stays on top of other windows.
  */
 class DraggablePopup : public QWidget {
     Q_OBJECT

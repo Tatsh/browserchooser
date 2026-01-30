@@ -4,8 +4,8 @@ autosort
 autouic
 browserfinder
 browserlauncher
-browserselector
-browserselectorrc
+browserchooser
+browserchooserrc
 bsky
 buildsystems
 bytearray

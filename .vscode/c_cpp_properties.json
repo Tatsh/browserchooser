@@ -6,7 +6,7 @@
       "cppStandard": "c++23",
       "includePath": [
         "${workspaceFolder}/src/**",
-        "${workspaceFolder}/build/src/browserselector_autogen/include"
+        "${workspaceFolder}/build/src/browserchooser_autogen/include"
       ],
       "name": "Linux"
     }

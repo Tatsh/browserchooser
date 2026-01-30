@@ -1,3 +1,4 @@
+/** @file */
 #pragma once
 
 #include <expected>
@@ -6,19 +7,19 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 
-/** Represents a desktop entry (.desktop file). */
+/** Represents a desktop entry (@c .desktop file). */
 class DesktopEntry {
 public:
     /** Constructor. */
     DesktopEntry() = default;
     /**
-     * Constructor that parses the given .desktop file.
-     * @param filename The path to the .desktop file.
+     * Constructor that parses the given @c .desktop file.
+     * @param filename The path to the @c .desktop file.
      */
     explicit DesktopEntry(const QString &filename);
     /**
-     * Parses the given .desktop file.
-     * @param filename The path to the .desktop file.
+     * Parses the given @c .desktop file.
+     * @param filename The path to the @c .desktop file.
      * @returns True if parsing was successful, false otherwise.
      */
     bool parse(const QString &filename);
@@ -36,6 +37,8 @@ public:
     [[nodiscard]] QString exec() const {
         return exec_;
     }
+    /** Returns the executable name (first token of @c Exec) for @c PATH lookup. */
+    [[nodiscard]] QString executableName() const;
     /** Returns the icon name of the desktop entry. */
     [[nodiscard]] QString icon() const {
         return icon_;
@@ -54,7 +57,7 @@ public:
     [[nodiscard]] QStringList mimeTypes() const {
         return mimeTypes_;
     }
-    /** Returns whether the desktop entry should not be displayed in menus. */
+    /** Returns whether the desktop entry has @c NoDisplay set (hidden from menus). */
     [[nodiscard]] bool noDisplay() const {
         return noDisplay_;
     }
@@ -75,5 +78,13 @@ private:
     QMap<QString, QString> entries_;
 };
 
-/** Reads a desktop entry from the given file. */
-[[nodiscard]] std::expected<DesktopEntry, QString> readDesktopEntry(const QString &filename);
+/** Error code for reading a desktop entry. */
+enum class DesktopEntryError { ParseFailed };
+
+/**
+ * Reads a desktop entry from the given file.
+ * @param filename @c Path to the @c .desktop file.
+ * @return The parsed DesktopEntry on success, or an error.
+ */
+[[nodiscard]] std::expected<DesktopEntry, DesktopEntryError>
+readDesktopEntry(const QString &filename);

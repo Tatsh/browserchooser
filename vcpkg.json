@@ -11,10 +11,10 @@
     }
   ],
   "description": "Pick which browser to use based on domain names.",
-  "documentation": "https://browserselector.readthedocs.org",
-  "homepage": "https://tatsh.github.io/browserselector/",
+  "documentation": "https://browserchooser.readthedocs.org",
+  "homepage": "https://tatsh.github.io/browserchooser/",
   "license": "MIT",
   "maintainers": ["Andrew Udvare <audvare@gmail.com>"],
-  "name": "browserselector",
+  "name": "browserchooser",
   "version": "0.0.1"
 }

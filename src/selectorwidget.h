@@ -1,13 +1,18 @@
+/** @file */
 #pragma once
 
+#include <QtCore/QList>
+#include <QtCore/QMap>
+
 #include <QtWidgets/QCheckBox>
+#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QRadioButton>
 
-#include "desktopentry.h"
+#include "browseroption.h"
 #include "draggablepopup.h"
 
 class QToolButton;
-class BrowserSelector;
+class BrowserChooser;
 
 /** Widget for selecting a browser. */
 class SelectorWidget : public DraggablePopup {
@@ -16,30 +21,41 @@ class SelectorWidget : public DraggablePopup {
 public:
     /**
      * Constructor.
-     * @param selector The BrowserSelector managing this widget.
+     * @param chooser The BrowserChooser managing this widget.
      * @param parent The parent widget.
      */
-    explicit SelectorWidget(BrowserSelector *selector, QWidget *parent = nullptr);
+    explicit SelectorWidget(BrowserChooser *chooser, QWidget *parent = nullptr);
 
 private Q_SLOTS:
     void onButtonClicked(int browserIndex);
     void onRememberCheckBoxToggled(bool checked);
+    void onShowGuestCheckBoxToggled(bool checked);
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     void setupWindow();
-    QWidget *createBrowserEntry(const DesktopEntry &entry, int index);
+    QWidget *createBrowserEntry(const BrowserOption &option,
+                                int index,
+                                bool inSection = false,
+                                bool browserNameOnly = false);
     QString findIconPath(const QString &iconName);
     QString getBaseDomain(const QString &domain);
 
+    static constexpr int kBrowsersPerRow = 5;
     static constexpr int kIconSize = 48;
     static constexpr int kEntryWidth = 100;
 
-    BrowserSelector *selector_;
+    BrowserChooser *chooser_;
     QCheckBox *rememberCheckBox_ = nullptr;
+    QCheckBox *showGuestCheckBox_ = nullptr;
+    QWidget *guestSectionWidget_ = nullptr;
     QRadioButton *exactDomainRadio_ = nullptr;
     QRadioButton *wildcardDomainRadio_ = nullptr;
     QWidget *radioContainer_ = nullptr;
     QString domain_;
     QString baseDomain_;
     QToolButton *firstButton_ = nullptr;
+    QMap<int, QString> tooltipByIndex_;
 };
