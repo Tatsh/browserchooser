@@ -16,6 +16,8 @@ add_executable(browserchooser
     browseroption.h
     chrome_profile.cpp
     chrome_profile.h
+    firefox_profile.cpp
+    firefox_profile.h
     browserchooser.cpp
     browserchooser.desktop
     browserchooser.h

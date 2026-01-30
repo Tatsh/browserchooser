@@ -12,6 +12,7 @@
 #include "backend.h"
 #include "browseroption.h"
 #include "desktopentry.h"
+#include "firefox_profile.h"
 
 namespace {
 
@@ -102,6 +103,15 @@ QString getChromiumConfigDirForBundle(const QString &bundlePath) {
     return QDir::homePath() + QStringLiteral("/Library/Application Support/") + dirName;
 }
 
+QString getFirefoxConfigDir() {
+    return QDir::homePath() + QStringLiteral("/Library/Application Support/Firefox");
+}
+
+bool isFirefoxBundle(const QString &bundlePath) {
+    const auto baseName = QFileInfo(bundlePath).completeBaseName();
+    return baseName.contains(QStringLiteral("Firefox"), Qt::CaseInsensitive);
+}
+
 } // anonymous namespace
 
 QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
@@ -110,6 +120,11 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
         QStringLiteral("/Applications"),
         QDir::homePath() + QStringLiteral("/Applications"),
     };
+    const auto firefoxConfigDir = getFirefoxConfigDir();
+    const auto firefoxProfiles = QDir(firefoxConfigDir).exists()
+                                    ? getFirefoxProfiles(firefoxConfigDir)
+                                    : QList<FirefoxProfilePair>();
+    const bool hasFirefoxProfiles = !firefoxProfiles.isEmpty();
     for (const auto &appDir : appDirs) {
         QDir dir(appDir);
         if (!dir.exists()) {
@@ -128,7 +143,15 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
             if (!entry.parseAppBundle(bundlePath)) {
                 continue;
             }
-            options.append(BrowserOption(entry, QString(), QString(), true, false));
+            if (isFirefoxBundle(bundlePath) && hasFirefoxProfiles) {
+                const bool singleProfile = firefoxProfiles.size() == 1;
+                for (const auto &pair : firefoxProfiles) {
+                    options.append(BrowserOption(
+                        entry, pair.first, pair.second, singleProfile, true));
+                }
+            } else {
+                options.append(BrowserOption(entry, QString(), QString(), true, false));
+            }
         }
     }
     std::ranges::sort(options, [](const BrowserOption &a, const BrowserOption &b) {
@@ -143,18 +166,34 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls) {
         return;
     }
     QStringList args{QStringLiteral("-a"), bundlePath};
-    if (!urls.isEmpty()) {
-        args << QStringLiteral("--args") << urls;
+    QStringList appArgs;
+    if (!option.profileName().isEmpty()) {
+        appArgs << QStringLiteral("-P") << option.profileName();
+    }
+    appArgs << urls;
+    if (!appArgs.isEmpty()) {
+        args << QStringLiteral("--args") << appArgs;
     }
     QProcess::startDetached(QStringLiteral("open"), args);
 }
 
 QString getCommandLineForDisplay(const BrowserOption &option, const QString &url) {
     const auto bundlePath = option.desktopPath();
-    if (url.isEmpty()) {
-        return QStringLiteral("open -a \"%1\"").arg(bundlePath);
+    QString cmd = QStringLiteral("open -a \"%1\"").arg(bundlePath);
+    QStringList appArgs;
+    if (!option.profileName().isEmpty()) {
+        appArgs << QStringLiteral("-P") << option.profileName();
     }
-    return QStringLiteral("open -a \"%1\" --args \"%2\"").arg(bundlePath, url);
+    if (!url.isEmpty()) {
+        appArgs << url;
+    }
+    if (!appArgs.isEmpty()) {
+        cmd += QStringLiteral(" --args");
+        for (const auto &arg : appArgs) {
+            cmd += QLatin1Char(' ') + QStringLiteral("\"%1\"").arg(arg);
+        }
+    }
+    return cmd;
 }
 
 QString getExecutablePath(const BrowserOption &option) {

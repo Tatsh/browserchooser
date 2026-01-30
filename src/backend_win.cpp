@@ -13,6 +13,7 @@
 #include "backend.h"
 #include "browseroption.h"
 #include "desktopentry.h"
+#include "firefox_profile.h"
 
 #include <windows.h>
 
@@ -99,6 +100,20 @@ QString getChromeUserDataDirForExe(const QString &exePath) {
     return localAppData + QLatin1Char('/') + subPath;
 }
 
+QString getFirefoxConfigDir() {
+    const auto appData = qEnvironmentVariable("APPDATA");
+    if (appData.isEmpty()) {
+        return QDir::homePath() + QStringLiteral("/AppData/Roaming/Mozilla/Firefox");
+    }
+    return QDir::fromNativeSeparators(appData) + QStringLiteral("/Mozilla/Firefox");
+}
+
+bool isFirefoxExe(const QString &exePath) {
+    return QFileInfo(exePath).fileName().compare(QStringLiteral("firefox.exe"),
+                                                  Qt::CaseInsensitive)
+           == 0;
+}
+
 QString quoteArg(const QString &arg) {
     if (arg.isEmpty()) {
         return QStringLiteral("\"\"");
@@ -134,12 +149,25 @@ QString quoteArg(const QString &arg) {
 QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
     QList<BrowserOption> options;
     const auto paths = discoverBrowserPaths();
+    const auto firefoxConfigDir = getFirefoxConfigDir();
+    const auto firefoxProfiles = QDir(firefoxConfigDir).exists()
+                                    ? getFirefoxProfiles(firefoxConfigDir)
+                                    : QList<FirefoxProfilePair>();
+    const bool hasFirefoxProfiles = !firefoxProfiles.isEmpty();
     for (const auto &exePath : paths) {
         DesktopEntry entry;
         if (!entry.parseFromExecutable(exePath)) {
             continue;
         }
-        options.append(BrowserOption(entry, QString(), QString(), true, false));
+        if (isFirefoxExe(exePath) && hasFirefoxProfiles) {
+            const bool singleProfile = firefoxProfiles.size() == 1;
+            for (const auto &pair : firefoxProfiles) {
+                options.append(
+                    BrowserOption(entry, pair.first, pair.second, singleProfile, true));
+            }
+        } else {
+            options.append(BrowserOption(entry, QString(), QString(), true, false));
+        }
     }
     std::ranges::sort(options, [](const BrowserOption &a, const BrowserOption &b) {
         return a.displayName().compare(b.displayName(), Qt::CaseInsensitive) < 0;
@@ -154,18 +182,24 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls) {
         return;
     }
     QStringList args;
-    if (!urls.isEmpty()) {
-        args << urls;
+    if (!option.profileName().isEmpty()) {
+        args << QStringLiteral("-P") << option.profileName();
     }
+    args << urls;
     QProcess::startDetached(exePath, args);
 }
 
 QString getCommandLineForDisplay(const BrowserOption &option, const QString &url) {
     const auto exePath = option.desktopPath();
-    if (url.isEmpty()) {
-        return quoteArg(exePath);
+    QString cmd = quoteArg(exePath);
+    if (!option.profileName().isEmpty()) {
+        cmd += QLatin1Char(' ') + quoteArg(QStringLiteral("-P"))
+             + QLatin1Char(' ') + quoteArg(option.profileName());
     }
-    return quoteArg(exePath) + QLatin1Char(' ') + quoteArg(url);
+    if (!url.isEmpty()) {
+        cmd += QLatin1Char(' ') + quoteArg(url);
+    }
+    return cmd;
 }
 
 QString getExecutablePath(const BrowserOption &option) {

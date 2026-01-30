@@ -14,6 +14,7 @@
 #include "backend.h"
 #include "browseroption.h"
 #include "desktopentry.h"
+#include "firefox_profile.h"
 
 namespace {
 
@@ -87,39 +88,6 @@ QList<ProfilePair> getChromeProfiles(const QString &configDir) {
 
 bool isFirefoxExecutable(const QString &exeName) {
     return exeName.contains(QStringLiteral("firefox"), Qt::CaseInsensitive);
-}
-
-QList<ProfilePair> getFirefoxProfiles(const QString &configDir) {
-    auto path = configDir + QStringLiteral("/profiles.ini");
-    if (!QFile::exists(path)) {
-        return {};
-    }
-    QSettings ini(path, QSettings::IniFormat);
-    int profileCount = 0;
-    QList<ProfilePair> nonDefaultPairs;
-    for (const auto &group : ini.childGroups()) {
-        if (!group.startsWith(QStringLiteral("Profile"))) {
-            continue;
-        }
-        ++profileCount;
-        ini.beginGroup(group);
-        auto name = ini.value(QStringLiteral("Name")).toString();
-        auto isDefault = ini.value(QStringLiteral("Default")).toInt() == 1;
-        ini.endGroup();
-        if (name.isEmpty() || isDefault) {
-            continue;
-        }
-        nonDefaultPairs.append({name, name});
-    }
-    if (profileCount <= 1) {
-        return {{QString(), QString()}};
-    }
-    QList<ProfilePair> pairs;
-    pairs.append({QString(), QString()});
-    for (const auto &pair : nonDefaultPairs) {
-        pairs.append(pair);
-    }
-    return pairs;
 }
 
 QStringList parseExecString(const QString &exec) {
@@ -316,7 +284,9 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
             if (isFirefoxExecutable(exeName)) {
                 auto configDir = QDir::homePath() + QStringLiteral("/.mozilla/firefox");
                 if (QDir(configDir).exists()) {
-                    profilePairs = getFirefoxProfiles(configDir);
+                    for (const auto &p : getFirefoxProfiles(configDir)) {
+                        profilePairs.append(p);
+                    }
                     fromProfileDiscovery = !profilePairs.isEmpty();
                 }
             } else {
