@@ -8,7 +8,6 @@
 #include <QtCore/QMap>
 #include <QtCore/QProcess>
 #include <QtCore/QSet>
-#include <QtCore/QSettings>
 #include <QtCore/QStandardPaths>
 
 #include "backend.h"
@@ -90,27 +89,6 @@ bool isFirefoxExecutable(const QString &exeName) {
     return exeName.contains(QStringLiteral("firefox"), Qt::CaseInsensitive);
 }
 
-// Reads a comma-separated list from the config file (used for Advanced/hideProfileBrowsers
-// and Advanced/hideBrowsers). Identifiers can be executable names (e.g. firefox) or full canonical paths.
-QStringList readCommaSeparatedList(const QString &key) {
-    const auto raw = QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString();
-    auto list = raw.split(QLatin1Char(','), Qt::SkipEmptyParts);
-    for (auto &s : list) {
-        s = s.trimmed();
-    }
-    list.removeAll(QString());
-    return list;
-}
-
-bool listContainsIdentifier(const QStringList &list, const QString &identifier) {
-    if (identifier.isEmpty()) {
-        return false;
-    }
-    return std::ranges::any_of(list, [&identifier](const QString &s) {
-        return s.compare(identifier, Qt::CaseInsensitive) == 0;
-    });
-}
-
 QString getCanonicalBrowserPath(const BrowserOption &option) {
     const auto exeName = option.entry().executableName();
     if (exeName.isEmpty()) {
@@ -158,37 +136,6 @@ bool isProfileRelatedArg(const QString &arg) {
     return arg == QLatin1String("-P") || arg == QLatin1String("--guest") ||
            arg.startsWith(QLatin1String("--profile=")) ||
            arg.startsWith(QLatin1String("--profile-directory="));
-}
-
-QString quoteArg(const QString &arg) {
-    if (arg.isEmpty()) {
-        return QStringLiteral(R"("")");
-    }
-    auto needQuote = false;
-    for (auto c : arg) {
-        if (c == QLatin1Char(' ') || c == QLatin1Char('"') || c == QLatin1Char('\'') ||
-            c == QLatin1Char('\\')) {
-            needQuote = true;
-            break;
-        }
-    }
-    if (!needQuote) {
-        return arg;
-    }
-    QString result;
-    result.reserve(arg.size() + 2);
-    result += QLatin1Char('"');
-    for (auto c : arg) {
-        if (c == QLatin1Char('"')) {
-            result += QStringLiteral(R"(\")");
-        } else if (c == QLatin1Char('\\')) {
-            result += QStringLiteral(R"(\\)");
-        } else {
-            result += c;
-        }
-    }
-    result += QLatin1Char('"');
-    return result;
 }
 
 QStringList buildArgvForOption(const BrowserOption &option, const QString &url) {
@@ -275,7 +222,8 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
         readCommaSeparatedList(QStringLiteral("Advanced/hideProfileBrowsers"));
     const auto userAppDir = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
     auto appDirs = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation);
-    if (!userAppDir.isEmpty() && appDirs.removeAll(userAppDir)) {
+    if (!userAppDir.isEmpty()) {
+        appDirs.removeAll(userAppDir);
         appDirs.prepend(userAppDir);
     }
     QList<BrowserOption> options;
@@ -390,9 +338,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
         }
     }
     options = byDisplayName.values();
-    std::ranges::sort(options, [](const BrowserOption &a, const BrowserOption &b) {
-        return a.displayName().compare(b.displayName(), Qt::CaseInsensitive) < 0;
-    });
+    sortBrowserOptionsByDisplayName(options);
     const auto hideBrowsers = readCommaSeparatedList(QStringLiteral("Advanced/hideBrowsers"));
     if (!hideBrowsers.isEmpty()) {
         options.removeIf([&hideBrowsers](const BrowserOption &opt) {
@@ -530,11 +476,6 @@ QString getExecutablePath(const BrowserOption &option) {
         exePath = exeName;
     }
     return exePath;
-}
-
-QString getConfigFilePath() {
-    auto configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    return configDir + QStringLiteral("/browserchooserrc");
 }
 
 QString getChromeUserDataDir(const QString &desktopPath) {

@@ -80,11 +80,11 @@ QString getChromeUserDataDirForExe(const QString &exePath) {
             return userDataDir;
         }
     }
-    QString localAppData = qEnvironmentVariable("LOCALAPPDATA");
+    const QString localAppData =
+        QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
     if (localAppData.isEmpty()) {
-        localAppData = QDir::homePath() + QStringLiteral("/AppData/Local");
+        return {};
     }
-    localAppData = QDir::fromNativeSeparators(localAppData);
     const auto baseName = QFileInfo(exePath).completeBaseName().toLower();
     QString subPath;
     if (baseName == QStringLiteral("chrome")) {
@@ -102,37 +102,17 @@ QString getChromeUserDataDirForExe(const QString &exePath) {
 }
 
 QString getFirefoxConfigDir() {
-    const auto appData = qEnvironmentVariable("APPDATA");
-    if (appData.isEmpty()) {
-        return QDir::homePath() + QStringLiteral("/AppData/Roaming/Mozilla/Firefox");
+    const auto configRoot =
+        QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    if (configRoot.isEmpty()) {
+        return {};
     }
-    return QDir::fromNativeSeparators(appData) + QStringLiteral("/Mozilla/Firefox");
+    return configRoot + QStringLiteral("/Mozilla/Firefox");
 }
 
 bool isFirefoxExe(const QString &exePath) {
     return QFileInfo(exePath).fileName().compare(QStringLiteral("firefox.exe"),
                                                  Qt::CaseInsensitive) == 0;
-}
-
-// Reads a comma-separated list from the config file (used for Advanced/hideProfileBrowsers
-// and Advanced/hideBrowsers). Identifiers can be exe base names (e.g. firefox) or full canonical paths.
-QStringList readCommaSeparatedList(const QString &key) {
-    const auto raw = QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString();
-    auto list = raw.split(QLatin1Char(','), Qt::SkipEmptyParts);
-    for (auto &s : list) {
-        s = s.trimmed();
-    }
-    list.removeAll(QString());
-    return list;
-}
-
-bool listContainsIdentifier(const QStringList &list, const QString &identifier) {
-    if (identifier.isEmpty()) {
-        return false;
-    }
-    return std::ranges::any_of(list, [&identifier](const QString &s) {
-        return s.compare(identifier, Qt::CaseInsensitive) == 0;
-    });
 }
 
 QString getCanonicalBrowserPath(const BrowserOption &option) {
@@ -146,36 +126,6 @@ QString getCanonicalBrowserPath(const BrowserOption &option) {
 
 QString exeBaseName(const QString &exePath) {
     return QFileInfo(exePath).completeBaseName();
-}
-
-QString quoteArg(const QString &arg) {
-    if (arg.isEmpty()) {
-        return QStringLiteral("\"\"");
-    }
-    auto needQuote = false;
-    for (const auto c : arg) {
-        if (c == QLatin1Char(' ') || c == QLatin1Char('"') || c == QLatin1Char('\\')) {
-            needQuote = true;
-            break;
-        }
-    }
-    if (!needQuote) {
-        return arg;
-    }
-    QString result;
-    result.reserve(arg.size() + 2);
-    result += QLatin1Char('"');
-    for (const auto c : arg) {
-        if (c == QLatin1Char('"')) {
-            result += QStringLiteral("\\\"");
-        } else if (c == QLatin1Char('\\')) {
-            result += QStringLiteral("\\\\");
-        } else {
-            result += c;
-        }
-    }
-    result += QLatin1Char('"');
-    return result;
 }
 
 } // anonymous namespace
@@ -212,9 +162,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
             options.append(BrowserOption(entry, QString(), QString(), true, false));
         }
     }
-    std::ranges::sort(options, [](const BrowserOption &a, const BrowserOption &b) {
-        return a.displayName().compare(b.displayName(), Qt::CaseInsensitive) < 0;
-    });
+    sortBrowserOptionsByDisplayName(options);
     const QVariant hideBrowsersVar = QSettings(getConfigFilePath(), QSettings::IniFormat)
                                          .value(QStringLiteral("Advanced/hideBrowsers"));
     QStringList hideBrowsers = hideBrowsersVar.isNull() || !hideBrowsersVar.isValid() ?
@@ -266,11 +214,6 @@ QString getCommandLineForDisplay(const BrowserOption &option, const QString &url
 
 QString getExecutablePath(const BrowserOption &option) {
     return option.desktopPath();
-}
-
-QString getConfigFilePath() {
-    const auto configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    return configDir + QStringLiteral("/browserchooserrc");
 }
 
 QString getChromeUserDataDir(const QString &desktopPath) {

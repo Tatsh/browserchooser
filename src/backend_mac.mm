@@ -4,7 +4,6 @@
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QProcess>
-#include <QtCore/QSettings>
 #include <QtCore/QStandardPaths>
 
 #import <Foundation/Foundation.h>
@@ -71,7 +70,11 @@ QString getChromiumConfigDirForBundle(const QString &bundlePath) {
     if (!QFile::exists(plistPath)) {
         return {};
     }
-    const QString supportBase = QDir::homePath() + QStringLiteral("/Library/Application Support/");
+    const QString supportBase =
+        QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
+    if (supportBase.isEmpty()) {
+        return {};
+    }
     @autoreleasepool {
         NSDictionary *root = loadPlist(plistPath);
         if (!root) {
@@ -80,7 +83,7 @@ QString getChromiumConfigDirForBundle(const QString &bundlePath) {
         NSString *crProductDir = root[@"CrProductDirName"];
         if (crProductDir && [crProductDir isKindOfClass:[NSString class]] &&
             [crProductDir length] > 0) {
-            return supportBase + stringFromNSString(crProductDir);
+            return supportBase + QLatin1Char('/') + stringFromNSString(crProductDir);
         }
         NSString *appName = root[@"CFBundleName"];
         if (!appName || ![appName isKindOfClass:[NSString class]] || [appName length] == 0) {
@@ -104,12 +107,17 @@ QString getChromiumConfigDirForBundle(const QString &bundlePath) {
         } else {
             return {};
         }
-        return supportBase + dirName;
+        return supportBase + QLatin1Char('/') + dirName;
     }
 }
 
 QString getFirefoxConfigDir() {
-    return QDir::homePath() + QStringLiteral("/Library/Application Support/Firefox");
+    const auto supportBase =
+        QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
+    if (supportBase.isEmpty()) {
+        return {};
+    }
+    return supportBase + QStringLiteral("/Firefox");
 }
 
 bool isFirefoxBundle(const QString &bundlePath) {
@@ -124,28 +132,6 @@ bool isSafariBundle(const QString &bundlePath) {
 
 bool isWebBrowser(const QString &bundlePath) {
     return isSafariBundle(bundlePath) || appHandlesHttpHttps(bundlePath);
-}
-
-// Reads a comma-separated list from the config file (used for Advanced/hideProfileBrowsers
-// and Advanced/hideBrowsers). Identifiers can be bundle names (e.g. Firefox), bundle IDs
-// (e.g. com.apple.Safari), or full canonical paths.
-QStringList readCommaSeparatedList(const QString &key) {
-    const auto raw = QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString();
-    auto list = raw.split(QLatin1Char(','), Qt::SkipEmptyParts);
-    for (auto &s : list) {
-        s = s.trimmed();
-    }
-    list.removeAll(QString());
-    return list;
-}
-
-bool listContainsIdentifier(const QStringList &list, const QString &identifier) {
-    if (identifier.isEmpty()) {
-        return false;
-    }
-    return std::ranges::any_of(list, [&identifier](const QString &s) {
-        return s.compare(identifier, Qt::CaseInsensitive) == 0;
-    });
 }
 
 QString getCanonicalBrowserPath(const BrowserOption &option) {
@@ -191,10 +177,20 @@ QString getBundleIdentifier(const QString &bundlePath) {
 
 QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
     QList<BrowserOption> options;
-    const QStringList appDirs = {
-        QDir::homePath() + QStringLiteral("/Applications"),
-        QStringLiteral("/Applications"),
-    };
+    // Use ApplicationsLocation for /Applications and ~/Applications on macOS.
+    auto userAppDir =
+        QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+    if (userAppDir.isEmpty()) {
+        const auto fallback = QDir::homePath() + QStringLiteral("/Applications");
+        if (QDir(fallback).exists()) {
+            userAppDir = fallback;
+        }
+    }
+    auto appDirs = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation);
+    if (!userAppDir.isEmpty()) {
+        appDirs.removeAll(userAppDir);
+        appDirs.prepend(userAppDir);
+    }
     const auto hideProfileBrowsers =
         readCommaSeparatedList(QStringLiteral("Advanced/hideProfileBrowsers"));
     const auto firefoxConfigDir = getFirefoxConfigDir();
@@ -249,9 +245,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
             }
         }
     }
-    std::ranges::sort(options, [](const BrowserOption &a, const BrowserOption &b) {
-        return a.displayName().compare(b.displayName(), Qt::CaseInsensitive) < 0;
-    });
+    sortBrowserOptionsByDisplayName(options);
     const auto hideBrowsers = readCommaSeparatedList(QStringLiteral("Advanced/hideBrowsers"));
     if (!hideBrowsers.isEmpty()) {
         options.removeIf([&hideBrowsers](const BrowserOption &opt) {
@@ -316,11 +310,6 @@ QString getExecutablePath(const BrowserOption &option) {
         return {};
     }
     return e.exec();
-}
-
-QString getConfigFilePath() {
-    const auto configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    return configDir + QStringLiteral("/browserchooserrc");
 }
 
 QString getChromeUserDataDir(const QString &desktopPath) {

@@ -72,3 +72,23 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls = QStrin
  * @return User data directory path, or empty if not Chrome/Chromium or not found.
  */
 [[nodiscard]] QString getChromeUserDataDir(const QString &desktopPath);
+
+/**
+ * Reads a comma-separated list from the config file (e.g. Advanced/hideProfileBrowsers).
+ */
+[[nodiscard]] QStringList readCommaSeparatedList(const QString &key);
+
+/**
+ * Returns true if @p list contains @p identifier (case-insensitive).
+ */
+[[nodiscard]] bool listContainsIdentifier(const QStringList &list, const QString &identifier);
+
+/**
+ * Quotes @p arg for display in a command line (handles space, quotes, backslash).
+ */
+[[nodiscard]] QString quoteArg(const QString &arg);
+
+/**
+ * Sorts browser options by display name (case-insensitive).
+ */
+void sortBrowserOptionsByDisplayName(QList<BrowserOption> &options);
