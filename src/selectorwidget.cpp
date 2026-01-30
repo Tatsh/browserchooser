@@ -339,6 +339,13 @@ void SelectorWidget::setupWindow() {
         firstButton_->setFocus();
     }
     setWindowTitle(tr("Open URL with"));
+    QIcon appIcon = QIcon::fromTheme(QStringLiteral("applications-internet"));
+    if (appIcon.isNull()) {
+        appIcon = QIcon::fromTheme(QStringLiteral("web-browser"));
+    }
+    if (!appIcon.isNull()) {
+        setWindowIcon(appIcon);
+    }
 }
 
 void SelectorWidget::onRememberCheckBoxToggled(bool checked) {
