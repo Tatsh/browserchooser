@@ -1,3 +1,4 @@
+#include <QtCore/QSettings>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
 
@@ -7,6 +8,7 @@
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
 int main(int argc, char *argv[]) {
 #pragma clang diagnostic pop
+    QSettings::setDefaultFormat(QSettings::IniFormat);
 #ifndef Q_OS_LINUX
     QApplication app(argc, argv);
     QMessageBox::critical(nullptr,
