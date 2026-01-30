@@ -123,7 +123,8 @@ bool isWebBrowser(const QString &bundlePath) {
 }
 
 // Reads a comma-separated list from the config file (used for Advanced/hideProfileBrowsers
-// and Advanced/hideBrowsers). Identifiers can be bundle names (e.g. Firefox) or full canonical paths.
+// and Advanced/hideBrowsers). Identifiers can be bundle names (e.g. Firefox), bundle IDs
+// (e.g. com.apple.Safari), or full canonical paths.
 QStringList readCommaSeparatedList(const QString &key) {
     const auto raw = QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString();
     auto list = raw.split(QLatin1Char(','), Qt::SkipEmptyParts);
@@ -162,6 +163,31 @@ QString getCanonicalBrowserPath(const BrowserOption &option) {
 
 QString bundleName(const QString &bundlePath) {
     return QFileInfo(bundlePath).completeBaseName();
+}
+
+QString getBundleIdentifier(const QString &bundlePath) {
+    const auto plistPath = bundlePath + QStringLiteral("/Contents/Info.plist");
+    if (!QFile::exists(plistPath)) {
+        return {};
+    }
+    QProcess proc;
+    proc.setProgram(QStringLiteral("plutil"));
+    proc.setArguments({QStringLiteral("-convert"),
+                       QStringLiteral("json"),
+                       QStringLiteral("-r"),
+                       QStringLiteral("-o"),
+                       QStringLiteral("-"),
+                       plistPath});
+    proc.start(QProcess::ReadOnly);
+    if (!proc.waitForFinished(5000) || proc.exitStatus() != QProcess::NormalExit ||
+        proc.exitCode() != 0) {
+        return {};
+    }
+    const auto json = QJsonDocument::fromJson(proc.readAllStandardOutput());
+    if (!json.isObject()) {
+        return {};
+    }
+    return json.object().value(QStringLiteral("CFBundleIdentifier")).toString();
 }
 
 } // anonymous namespace
@@ -207,10 +233,12 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
                     (QFileInfo(binaryPath).canonicalFilePath().isEmpty() ?
                          binaryPath :
                          QFileInfo(binaryPath).canonicalFilePath());
+            const auto bundleId = getBundleIdentifier(bundlePath);
             const bool skipFirefoxProfiles =
                 isFirefoxBundle(bundlePath) &&
                 (listContainsIdentifier(hideProfileBrowsers, nameForBundle) ||
-                 listContainsIdentifier(hideProfileBrowsers, canonicalBinaryPath));
+                 listContainsIdentifier(hideProfileBrowsers, canonicalBinaryPath) ||
+                 listContainsIdentifier(hideProfileBrowsers, bundleId));
             const bool useFirefoxProfiles =
                 isFirefoxBundle(bundlePath) && !skipFirefoxProfiles && !firefoxProfiles.isEmpty();
             if (useFirefoxProfiles) {
@@ -232,8 +260,10 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
         options.removeIf([&hideBrowsers](const BrowserOption &opt) {
             const auto name = bundleName(opt.desktopPath());
             const auto canonicalPath = getCanonicalBrowserPath(opt);
+            const auto bundleId = getBundleIdentifier(opt.desktopPath());
             return listContainsIdentifier(hideBrowsers, name) ||
-                   listContainsIdentifier(hideBrowsers, canonicalPath);
+                   listContainsIdentifier(hideBrowsers, canonicalPath) ||
+                   listContainsIdentifier(hideBrowsers, bundleId);
         });
     }
     return options;
