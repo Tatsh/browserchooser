@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=Minimal Browser
+Exec=/usr/bin/minimal-browser %u
+Icon=minimal-browser

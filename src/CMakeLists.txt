@@ -15,8 +15,12 @@ add_executable(
   browserchooser
   ${BACKEND_SOURCES}
   backend.h
+  basedomain.cpp
+  basedomain.h
   browserchooser.cpp
   browserchooser.h
+  browserinfoformat.cpp
+  browserinfoformat.h
   browseroption.cpp
   browseroption.h
   chrome_profile.cpp
@@ -24,6 +28,8 @@ add_executable(
   config.cpp
   config.h
   desktopentry.cpp
+  domainmatch.cpp
+  domainmatch.h
   desktopentry.h
   draggablepopup.cpp
   draggablepopup.h

@@ -1,4 +1,3 @@
-#include <QtCore/QFileInfo>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
 
@@ -111,8 +110,7 @@ void BrowserChooser::setRememberDomainWildcard(bool wildcard) {
 }
 
 void BrowserChooser::removeHiddenBrowsers() {
-    auto hiddenBrowsers = appConfig_.getHiddenBrowsers();
-    availableBrowsers_.removeIf([&hiddenBrowsers](const BrowserOption &option) {
-        return hiddenBrowsers.contains(QFileInfo(option.entry().filename()).completeBaseName());
+    availableBrowsers_.removeIf([this](const BrowserOption &option) {
+        return isBrowserHidden(option, appConfig_.getHiddenBrowsers());
     });
 }

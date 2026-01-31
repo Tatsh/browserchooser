@@ -1,0 +1,14 @@
+{
+  "profile": {
+    "info_cache": {
+      "Default": {
+        "gaia_picture_file_name": "avatar.png",
+        "name": "Person 1"
+      },
+      "Profile 1": {
+        "gaia_picture_file_name": "work_avatar.png",
+        "name": "Work"
+      }
+    }
+  }
+}

@@ -74,7 +74,7 @@
     "jsonRecursiveSort": true,
     "overrides": [
       {
-        "files": ["package.json"],
+        "files": ["package.json", "Local State"],
         "options": {
           "parser": "json"
         }

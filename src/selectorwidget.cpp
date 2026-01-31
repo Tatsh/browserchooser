@@ -2,7 +2,6 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QMap>
-#include <QtCore/QSet>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QUrl>
 #include <QtGui/QCloseEvent>
@@ -24,19 +23,15 @@
 #include <QtWidgets/QVBoxLayout>
 
 #include "backend.h"
+#include "basedomain.h"
 #include "browserchooser.h"
+#include "browserinfoformat.h"
 #include "desktopentry.h"
 #include "selectorwidget.h"
 #include "string_constants.h"
 
 namespace {
 
-static const auto kHtmlNowrap = QStringLiteral("<span style='white-space: nowrap;'>");
-static const auto kHtmlEndSpan = QStringLiteral("</span>");
-static const auto kHtmlFormat =
-    QStringLiteral("<span style='font-weight: normal; font-size: 11px;'>"
-                   "%1<h3>Command line</h3><code>%2</code>%3<br>"
-                   "%1<h3>Desktop file</h3><code>%4</code>%3</span>");
 static const auto kThemeApplicationsInternet = QStringLiteral("applications-internet");
 static const auto kThemeWebBrowser = QStringLiteral("web-browser");
 static const auto kThemeUserIdentity = QStringLiteral("user-identity");
@@ -68,11 +63,6 @@ QIcon iconFromPathMaskedAsCircle(const QString &path, int size) {
     return QIcon(out);
 }
 
-QString formatBrowserInfoHtml(const QString &commandLine, const QString &desktopPath) {
-    return kHtmlFormat.arg(
-        kHtmlNowrap, commandLine.toHtmlEscaped(), kHtmlEndSpan, desktopPath.toHtmlEscaped());
-}
-
 } // anonymous namespace
 
 SelectorWidget::SelectorWidget(BrowserChooser *chooser, QWidget *parent)
@@ -81,45 +71,7 @@ SelectorWidget::SelectorWidget(BrowserChooser *chooser, QWidget *parent)
 }
 
 QString SelectorWidget::getBaseDomain(const QString &domain) {
-    // Extract registrable/base domain (e.g. google.com from www.google.com,
-    // amazon.co.uk from www.amazon.co.uk).
-    auto parts = domain.split(QLatin1Char('.'));
-    if (parts.size() <= 2) {
-        return domain;
-    }
-    // Known two-part public suffixes (multi-part TLDs). When the last two
-    // parts form one of these, the base domain is the last three parts.
-    static const QSet<QString> kTwoPartSuffixes = {
-        QStringLiteral("ac.uk"),   QStringLiteral("asn.au"),   QStringLiteral("co.au"),
-        QStringLiteral("co.id"),   QStringLiteral("co.il"),    QStringLiteral("co.in"),
-        QStringLiteral("co.jp"),   QStringLiteral("co.kr"),    QStringLiteral("co.nz"),
-        QStringLiteral("co.th"),   QStringLiteral("co.uk"),    QStringLiteral("co.za"),
-        QStringLiteral("com.au"),  QStringLiteral("com.br"),   QStringLiteral("com.mx"),
-        QStringLiteral("ed.jp"),   QStringLiteral("edu.au"),   QStringLiteral("gen.nz"),
-        QStringLiteral("go.jp"),   QStringLiteral("gov.uk"),   QStringLiteral("gr.jp"),
-        QStringLiteral("id.au"),   QStringLiteral("lg.jp"),    QStringLiteral("ltd.uk"),
-        QStringLiteral("me.uk"),   QStringLiteral("ne.jp"),    QStringLiteral("net.au"),
-        QStringLiteral("net.br"),  QStringLiteral("net.uk"),   QStringLiteral("or.jp"),
-        QStringLiteral("org.au"),  QStringLiteral("org.uk"),   QStringLiteral("ac.jp"),
-        QStringLiteral("plc.uk"),  QStringLiteral("sch.uk"),   QStringLiteral("ac.nz"),
-        QStringLiteral("gov.au"),  QStringLiteral("govt.nz"),  QStringLiteral("geek.nz"),
-        QStringLiteral("kiwi.nz"), QStringLiteral("maori.nz"), QStringLiteral("school.nz"),
-        QStringLiteral("net.nz"),  QStringLiteral("org.nz"),   QStringLiteral("com.ar"),
-        QStringLiteral("net.in"),  QStringLiteral("org.in"),   QStringLiteral("ac.in"),
-        QStringLiteral("edu.in"),  QStringLiteral("gov.in"),   QStringLiteral("res.in"),
-        QStringLiteral("gen.in"),  QStringLiteral("firm.in"),  QStringLiteral("ind.in"),
-        QStringLiteral("org.za"),  QStringLiteral("web.za"),   QStringLiteral("net.za"),
-        QStringLiteral("gov.za"),  QStringLiteral("edu.za"),   QStringLiteral("mil.za"),
-        QStringLiteral("ac.za"),   QStringLiteral("law.za"),   QStringLiteral("or.kr"),
-        QStringLiteral("go.kr"),   QStringLiteral("ac.kr"),    QStringLiteral("ne.kr"),
-        QStringLiteral("re.kr"),   QStringLiteral("org.mx"),   QStringLiteral("gob.mx"),
-        QStringLiteral("edu.mx"),  QStringLiteral("net.mx"),   QStringLiteral("web.mx"),
-    };
-    const auto twoPartSuffix = parts.mid(parts.size() - 2).join(QLatin1Char('.'));
-    if (kTwoPartSuffixes.contains(twoPartSuffix)) {
-        return parts.mid(parts.size() - 3).join(QLatin1Char('.'));
-    }
-    return parts.mid(parts.size() - 2).join(QLatin1Char('.'));
+    return ::getBaseDomain(domain);
 }
 
 void SelectorWidget::setupWindow() {
@@ -529,7 +481,7 @@ auto SelectorWidget::createBrowserEntry(const BrowserOption &option,
         }
     }
     const auto commandLine = getCommandLineForDisplay(option, chooser_->urlToOpen());
-    const auto html = formatBrowserInfoHtml(commandLine, option.desktopPath());
+    const auto html = ::formatBrowserInfoHtml(commandLine, option.desktopPath());
     tooltipByIndex_[index] = html;
     QString labelText;
     if (browserNameOnly || option.profileName() == kGuest) {

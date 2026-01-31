@@ -1,16 +1,15 @@
 #include <QtCore/QDir>
-#include <QtCore/QRegularExpression>
 #include <QtCore/QStandardPaths>
 
 #include "backend.h"
 #include "browseroption.h"
 #include "config.h"
+#include "domainmatch.h"
 
 namespace {
 
 static const auto kTildeSlash = QStringLiteral("~/");
 static const auto kTilde = QStringLiteral("~");
-static const auto kWildcardPrefix = QStringLiteral("*.");
 static const auto kRememberedBrowsers = QStringLiteral("RememberedBrowsers");
 static const auto kKeyHiddenBrowsers = QStringLiteral("hidden_browsers");
 static const auto kKeyIncludeNoDisplayBrowsers = QStringLiteral("include_no_display_browsers");
@@ -28,32 +27,6 @@ auto expandTilde(const QString &path) -> QString {
         return QDir::homePath();
     }
     return path;
-}
-
-auto matchesWildcardPattern(const QString &pattern, const QString &domain) {
-    // Special handling for *. prefix: match any subdomain including no subdomain.
-    // e.g., *.google.com matches www.google.com, mail.google.com, and google.com
-    if (pattern.startsWith(kWildcardPrefix)) {
-        auto baseDomain = pattern.mid(2); // Remove "*." prefix.
-
-        // Check if domain equals the base domain (no subdomain).
-        if (domain.compare(baseDomain, Qt::CaseInsensitive) == 0) {
-            return true;
-        }
-
-        // Check if domain ends with .baseDomain (has subdomain).
-        if (domain.endsWith(QLatin1Char('.') + baseDomain, Qt::CaseInsensitive)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    // Standard wildcard matching for other patterns.
-    auto regexPattern = QRegularExpression::wildcardToRegularExpression(
-        pattern, QRegularExpression::UnanchoredWildcardConversion);
-    QRegularExpression regex(regexPattern, QRegularExpression::CaseInsensitiveOption);
-    return regex.match(domain).hasMatch();
 }
 
 } // anonymous namespace

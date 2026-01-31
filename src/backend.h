@@ -43,9 +43,19 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls = QStrin
 
 /**
  * Returns the path to the configuration file for the current platform.
+ * If setConfigFilePathOverride was called, returns that path instead.
  * @return Full path to the config file.
  */
 [[nodiscard]] QString getConfigFilePath();
+
+/**
+ * Overrides the config file path (for tests). getConfigFilePath() returns this until cleared.
+ * @param path Override path, or empty to clear.
+ */
+void setConfigFilePathOverride(const QString &path);
+
+/** Clears the config file path override. */
+void clearConfigFilePathOverride();
 
 /**
  * Resolves the profile display name for a saved option (Linux: Chromium profile; other backends may return empty).
@@ -84,6 +94,15 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls = QStrin
  * @param list List of strings to search.
  */
 [[nodiscard]] bool listContainsIdentifier(const QStringList &list, const QString &identifier);
+
+/**
+ * Returns true if the given option should be hidden (its desktop file base name
+ * is in @p hiddenIdentifiers, case-insensitive).
+ * @param option The browser option.
+ * @param hiddenIdentifiers List of identifiers (e.g. desktop base names) to hide.
+ */
+[[nodiscard]] bool isBrowserHidden(const BrowserOption &option,
+                                   const QStringList &hiddenIdentifiers);
 
 /**
  * Quotes @p arg for display in a command line (handles space, quotes, backslash).

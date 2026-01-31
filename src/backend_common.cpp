@@ -2,6 +2,7 @@
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
+#include <QtCore/QFileInfo>
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonValue>
@@ -11,12 +12,34 @@
 
 #include "backend.h"
 #include "chrome_profile.h"
+#include "desktopentry.h"
 #include "string_constants.h"
 
+namespace {
+
+QString *configFilePathOverride() {
+    static QString overridePath;
+    return &overridePath;
+}
+
+} // anonymous namespace
+
 QString getConfigFilePath() {
+    const auto *override = configFilePathOverride();
+    if (!override->isEmpty()) {
+        return *override;
+    }
     static const auto kFmt = QStringLiteral("%1/browserchooserrc");
     const auto configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     return kFmt.arg(configDir);
+}
+
+void setConfigFilePathOverride(const QString &path) {
+    *configFilePathOverride() = path;
+}
+
+void clearConfigFilePathOverride() {
+    configFilePathOverride()->clear();
 }
 
 QStringList readCommaSeparatedList(const QString &key) {
@@ -39,6 +62,11 @@ bool listContainsIdentifier(const QStringList &list, const QString &identifier) 
     return std::ranges::any_of(list, [&identifier](const QString &s) {
         return s.compare(identifier, Qt::CaseInsensitive) == 0;
     });
+}
+
+bool isBrowserHidden(const BrowserOption &option, const QStringList &hiddenIdentifiers) {
+    const auto baseName = QFileInfo(option.entry().filename()).completeBaseName();
+    return listContainsIdentifier(hiddenIdentifiers, baseName);
 }
 
 #ifndef Q_OS_WIN
