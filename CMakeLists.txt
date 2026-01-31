@@ -15,6 +15,26 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+option(BUILD_DOCS "Build documentation." OFF)
+option(BUILD_DOCS_ONLY "Build documentation only." OFF)
+
+if(BUILD_DOCS OR BUILD_DOCS_ONLY)
+  set(DOXYGEN_GENERATE_TAGFILE "${CMAKE_BINARY_DIR}/html/browserchooser.tags")
+  set(DOXYGEN_INTERACTIVE_SVG YES)
+  set(DOXYGEN_MARKDOWN_ID_STYLE GITHUB)
+  set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${CMAKE_SOURCE_DIR}/README.md")
+  set(DOXYGEN_TAGFILES
+      ./.docs/cppreference-doxygen-web.tag.xml=https://en.cppreference.com/w/
+      ./.docs/qtcore.tags=http://doc.qt.io/qt-6/ ./.docs/qtgui.tags=http://doc.qt.io/qt-6/
+      ./.docs/qtwidgets.tags=http://doc.qt.io/qt-6/)
+  find_package(Doxygen REQUIRED COMPONENTS dot)
+  doxygen_add_docs(docs README.md src ALL)
+endif()
+
+if(BUILD_DOCS_ONLY)
+  return()
+endif()
+
 option(BROWSERCHOOSER_CXX_WARN_ALL "Do not use." OFF)
 mark_as_advanced(BROWSERCHOOSER_CXX_WARN_ALL)
 set(BUNDLE_INSTALL_PREFIX
@@ -109,9 +129,6 @@ set(CPACK_PACKAGE_FILE_NAME ${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${__c
 if(WIN32)
   set(CPACK_GENERATOR NSIS ZIP)
 elseif(APPLE)
-  if(FHS OR NON_PORTABLE_MACOS_BUNDLE)
-    set(CPACK_GENERATOR ZIP)
-  else()
     set(CPACK_GENERATOR DragNDrop ZIP)
   endif()
 else()
