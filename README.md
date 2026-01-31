@@ -31,93 +31,75 @@ remember your choice per domain.
 
 ## Why use this?
 
-- **Work vs personal** - Open work links in a dedicated profile and personal links in another.
-- **Security and isolation** - Use a separate browser or profile for banking, social, or
-  untrusted sites.
-- **Multiple accounts** - Switch between Chrome/Firefox profiles (e.g. Work, Personal, Dev) from one
-  place when a link is opened.
+- **Work vs personal profiles or browsers** - Open work links in a dedicated profile and personal
+  links in another.
+- **Security and isolation** - Use a separate browser or profile for banking, social, or untrusted
+  sites.
 
 ## Features
 
-- **Cross-platform** - Linux (XDG desktop entries), macOS (`.app` bundles), and Windows
+- **Cross-platform** - Works on Linux (XDG desktop entries), macOS (`.app` bundles), and Windows
   (registry-based discovery).
 - **Browser discovery** - Detects Chrome, Firefox, Edge, Brave, Chromium, Opera, Safari (macOS), and
   other common browsers.
 - **Profile support** - Lists Chrome/Chromium and Firefox profiles by name, with profile pictures
   for Chromium-based browsers (when available).
-- **Guest profiles** - Buttons to open Guest profiles in browsers; these can be hidden.
-- **Remember per domain** - “Do not ask again” saves your selection for that domain so the same
+- **Guest profiles** - Buttons to open Guest profiles in browsers.
+- **Remember per domain** - 'Do not ask again' saves your selection for the domain so the same
   browser/profile opens next time.
 - **Configurable filtering** - Hide specific browsers or turn off profile listing for chosen
   browsers via config (e.g. `Advanced/hideBrowsers`, `Advanced/hideProfileBrowsers`). On macOS you
   can use bundle IDs (e.g. `com.apple.Safari`).
-- **Pre- and post-launch commands** - Run commands before or after launching a given browser or
-  profile; keys are per browser (or per browser+profile). See [Configuration](#configuration).
+- **Pre and post-launch commands** - Run commands before or after launching a given browser or
+  profile; keys are per browser (or per browser+profile).
 
 ## Configuration
 
-The config file is INI format. Location is platform-dependent (e.g. `~/.config/browserchooserrc` on
-Linux, `~/Library/Preferences/browserchooserrc` on macOS, `%APPDATA%\browserchooserrc` on Windows).
+The configuration file is INI format. Location is platform-dependent:
+
+| OS      | Location                                 |
+| ------- | ---------------------------------------- |
+| Linux   | `~/.config/browserchooserrc`             |
+| macOS   | `~/Library/Preferences/browserchooserrc` |
+| Windows | `%APPDATA%\browserchooserrc`             |
 
 ### Pre-launch and post-launch commands
 
-You can run commands **before** (pre-launch) and **after** (post-launch) starting a specific browser
-or browser+profile. Pre-launch commands run one after another, synchronously; post-launch commands
-run detached.
+You can run commands **before** and **after** starting a specific browser or browser/profile.
 
-**INI sections:** `[PreLaunchCommands]` and `[PostLaunchCommands]`.
+The value format is a JSON-encoded array of arrays of strings. Each inner array is one command:
+first element is the program and the rest are arguments. Example:
+`[["notify-send", "Opening browser"], ["/path/to/script.sh"]]`. Unfortunately the JSON must be
+inside double quotes and escaped properly.
 
-**Key format:** The key is the same as used when remembering a browser for a domain:
+Linux uses the path to the `.desktop` file (e.g. `/usr/share/applications/firefox.desktop`). macOS
+uses the path to the `.app` bundle (e.g. `/Applications/Firefox.app`). Windows uses the path to the
+`.exe` (e.g. `C:\Program Files\Mozilla Firefox\firefox.exe`). For a profile, append a pipe (escaped
+as `%7C`) and the profile name (e.g. `...\chrome.exe%7CProfile%201` where this is 'Profile 1' but
+percent-encoded).
 
-- **Browser only:** the path that identifies the browser (desktop path).
-- **Browser + profile:** that path, then `|`, then the profile name (e.g. `Default`, `Profile 1`).
-
-If there is no entry for browser+profile, the entry for the browser only (same path, no `|`) is
-used.
-
-**Value format:** A JSON array of arrays of strings. Each inner array is one command: first element
-is the program, the rest are arguments. Example: `[["notify-send", "Opening browser"], ["/path/to/script.sh"]]`.
-
-**Key examples by platform:** Linux uses the path to the `.desktop` file (e.g.
-`/usr/share/applications/firefox.desktop`). macOS uses the path to the `.app` bundle (e.g.
-`/Applications/Firefox.app`). Windows uses the path to the `.exe` (e.g.
-`C:/Program Files/Mozilla Firefox/firefox.exe`). For a profile, append a pipe and the profile name
-(e.g. `.../chrome.exe|Default`).
-
-**Example config (Linux):**
+#### Example configuration (Linux)
 
 ```ini
 [PreLaunchCommands]
-/usr/share/applications/firefox.desktop=[["notify-send", "Firefox"]]
-/usr/share/applications/google-chrome.desktop=[["notify-send", "Chrome"]]
-/usr/share/applications/google-chrome.desktop|Default=[["notify-send", "Chrome Default"]]
+; Default
+usr\share\applications\google-chrome.desktop="[[\"notify-send\",\"Chrome\"]]"
+; Profile 1
+usr\share\applications\google-chrome.desktop%7CProfile%201="[[\"notify-send\",\"Profile 1\"]]"
 
 [PostLaunchCommands]
-/usr/share/applications/firefox.desktop=[["/path/to/firefox-helper.sh"]]
+usr\share\applications\firefox.desktop="[[\"/path/to/firefox-helper.sh\"]]"
 ```
 
-**Example config (macOS):**
+#### Example configuration (macOS)
 
 ```ini
 [PreLaunchCommands]
-/Applications/Firefox.app=[["osascript", "-e", "display notification \"Firefox\" with title \"Browser\""]]
-/Applications/Google Chrome.app=[["osascript", "-e", "display notification \"Chrome\" with title \"Browser\""]]
-```
-
-**Example config (Windows):**
-
-```ini
-[PreLaunchCommands]
-C:/Program Files/Mozilla Firefox/firefox.exe=[["notify-send", "Firefox"]]
-C:/Program Files/Google/Chrome/Application/chrome.exe=[["notify-send", "Chrome"]]
+Applications\Firefox.app="[[\"osascript\",\"-e\",\"display notification \\\"Firefox\\\" with title \\\"Browser\"\"]]"
+; Profile 1
+Applications\Google%20Chrome.app%7CProfile%201="[[\"osascript\",\"-e\",\"display notification \\\"Chrome\\\" with title \\\"Browser\\\"\"]]"
 ```
 
 ## Installation
 
 Not yet written. See [CONTRIBUTING](CONTRIBUTING.md) for build and development setup.
-
-## Links
-
-- [Changelog](CHANGELOG.md)
-- [Contributing](CONTRIBUTING.md)
-- [Security policy](SECURITY.md)

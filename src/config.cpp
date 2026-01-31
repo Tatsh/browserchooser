@@ -12,14 +12,13 @@ static const auto kTildeSlash = QStringLiteral("~/");
 static const auto kTilde = QStringLiteral("~");
 static const auto kWildcardPrefix = QStringLiteral("*.");
 static const auto kRememberedBrowsers = QStringLiteral("RememberedBrowsers");
-static const auto kKeyHiddenBrowsers = QStringLiteral("General/hidden_browsers");
-static const auto kKeyIncludeNoDisplayBrowsers =
-    QStringLiteral("General/include_no_display_browsers");
-static const auto kKeyHideGuestProfiles = QStringLiteral("General/hide_guest_profiles");
+static const auto kKeyHiddenBrowsers = QStringLiteral("hidden_browsers");
+static const auto kKeyIncludeNoDisplayBrowsers = QStringLiteral("include_no_display_browsers");
+static const auto kKeyHideGuestProfiles = QStringLiteral("hide_guest_profiles");
 static const auto kKeyHideBrowsersWithoutProfiles =
-    QStringLiteral("General/hide_browsers_without_profiles");
-static const auto kKeyRememberChoiceChecked = QStringLiteral("General/remember_choice_checked");
-static const auto kKeyRememberDomainWildcard = QStringLiteral("General/remember_domain_wildcard");
+    QStringLiteral("hide_browsers_without_profiles");
+static const auto kKeyRememberChoiceChecked = QStringLiteral("remember_choice_checked");
+static const auto kKeyRememberDomainWildcard = QStringLiteral("remember_domain_wildcard");
 
 auto expandTilde(const QString &path) -> QString {
     if (path.startsWith(kTildeSlash)) {
