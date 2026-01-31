@@ -177,7 +177,7 @@ jobs:
         with:
           fail_on_unmatched_files: true
           files: |
-            ${{github.workspace}}/build/browserchooser-*.AppImage
+            ${{github.workspace}}/browserchooser-*.AppImage
     strategy:
       fail-fast: false
       matrix:
