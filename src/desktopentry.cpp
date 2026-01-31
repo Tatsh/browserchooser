@@ -4,6 +4,33 @@
 #include <QtCore/QTextStream>
 
 #include "desktopentry.h"
+#include "string_constants.h"
+
+static const auto kDesktopEntry = QStringLiteral("Desktop Entry");
+static const auto kExec = QStringLiteral("Exec");
+static const auto kIcon = QStringLiteral("Icon");
+static const auto kStartupWMClass = QStringLiteral("StartupWMClass");
+static const auto kCategories = QStringLiteral("Categories");
+static const auto kMimeType = QStringLiteral("MimeType");
+static const auto kNoDisplay = QStringLiteral("NoDisplay");
+static const auto kTrue = QStringLiteral("true");
+static const auto kComment = QStringLiteral("Comment");
+static const auto kSuffixExe = QStringLiteral(".exe");
+static const auto kSuffixApp = QStringLiteral(".app");
+static const auto kExeChrome = QStringLiteral("chrome");
+static const auto kExeFirefox = QStringLiteral("firefox");
+static const auto kExeMsedge = QStringLiteral("msedge");
+static const auto kExeBrave = QStringLiteral("brave");
+static const auto kExeOpera = QStringLiteral("opera");
+static const auto kExeIexplore = QStringLiteral("iexplore");
+static const auto kExeChromium = QStringLiteral("chromium");
+static const auto kDisplayGoogleChrome = QStringLiteral("Google Chrome");
+static const auto kDisplayMozillaFirefox = QStringLiteral("Mozilla Firefox");
+static const auto kDisplayMicrosoftEdge = QStringLiteral("Microsoft Edge");
+static const auto kDisplayBrave = QStringLiteral("Brave");
+static const auto kDisplayOpera = QStringLiteral("Opera");
+static const auto kDisplayInternetExplorer = QStringLiteral("Internet Explorer");
+static const auto kDisplayChromium = QStringLiteral("Chromium");
 
 DesktopEntry::DesktopEntry(const QString &filename) {
     parse(filename);
@@ -29,7 +56,7 @@ bool DesktopEntry::parse(const QString &filename) {
         // Check for group header.
         if (line.startsWith(QLatin1Char('[')) && line.endsWith(QLatin1Char(']'))) {
             currentGroup = line.mid(1, line.length() - 2);
-            inDesktopEntry = (currentGroup == QStringLiteral("Desktop Entry"));
+            inDesktopEntry = (currentGroup == kDesktopEntry);
             continue;
         }
         // Only parse Desktop Entry group.
@@ -46,13 +73,13 @@ bool DesktopEntry::parse(const QString &filename) {
     }
     file.close();
     // Extract commonly used values.
-    exec_ = getValue(QStringLiteral("Exec"));
-    icon_ = getValue(QStringLiteral("Icon"));
-    startupWMClass_ = getValue(QStringLiteral("StartupWMClass"));
-    categories_ = getListValue(QStringLiteral("Categories"));
-    mimeTypes_ = getListValue(QStringLiteral("MimeType"));
-    noDisplay_ = getValue(QStringLiteral("NoDisplay")).toLower() == QStringLiteral("true");
-    valid_ = !getValue(QStringLiteral("Name")).isEmpty() && !exec_.isEmpty();
+    exec_ = getValue(kExec);
+    icon_ = getValue(kIcon);
+    startupWMClass_ = getValue(kStartupWMClass);
+    categories_ = getListValue(kCategories);
+    mimeTypes_ = getListValue(kMimeType);
+    noDisplay_ = getValue(kNoDisplay).toLower() == kTrue;
+    valid_ = !getValue(kName).isEmpty() && !exec_.isEmpty();
     return valid_;
 }
 
@@ -66,13 +93,14 @@ QString DesktopEntry::getLocalizedValue(const QString &key) const {
     auto language = locale.name(); // e.g., "en_US", "ja_JP"
 
     // Try full locale (e.g., Name[en_US]).
-    if (auto value = getValue(QStringLiteral("%1[%2]").arg(key, language)); !value.isEmpty()) {
+    static const auto kFmtKeyLocale = QStringLiteral("%1[%2]");
+    if (auto value = getValue(kFmtKeyLocale.arg(key, language)); !value.isEmpty()) {
         return value;
     }
 
     // Try language only (e.g., Name[en]).
     auto langOnly = language.split(QLatin1Char('_')).first();
-    if (auto value = getValue(QStringLiteral("%1[%2]").arg(key, langOnly)); !value.isEmpty()) {
+    if (auto value = getValue(kFmtKeyLocale.arg(key, langOnly)); !value.isEmpty()) {
         return value;
     }
 
@@ -81,11 +109,11 @@ QString DesktopEntry::getLocalizedValue(const QString &key) const {
 }
 
 QString DesktopEntry::name() const {
-    return getLocalizedValue(QStringLiteral("Name"));
+    return getLocalizedValue(kName);
 }
 
 QString DesktopEntry::comment() const {
-    return getLocalizedValue(QStringLiteral("Comment"));
+    return getLocalizedValue(kComment);
 }
 
 QStringList DesktopEntry::getListValue(const QString &key) const {
@@ -143,30 +171,30 @@ bool DesktopEntry::parseFromExecutable(const QString &exePath) {
     valid_ = false;
     filename_ = exePath;
     entries_.clear();
-    if (!QFile::exists(exePath) || !exePath.endsWith(QStringLiteral(".exe"), Qt::CaseInsensitive)) {
+    if (!QFile::exists(exePath) || !exePath.endsWith(kSuffixExe, Qt::CaseInsensitive)) {
         return false;
     }
     exec_ = exePath;
     const auto baseName = QFileInfo(exePath).completeBaseName();
     QString name;
-    if (baseName.compare(QStringLiteral("chrome"), Qt::CaseInsensitive) == 0) {
-        name = QStringLiteral("Google Chrome");
-    } else if (baseName.compare(QStringLiteral("firefox"), Qt::CaseInsensitive) == 0) {
-        name = QStringLiteral("Mozilla Firefox");
-    } else if (baseName.compare(QStringLiteral("msedge"), Qt::CaseInsensitive) == 0) {
-        name = QStringLiteral("Microsoft Edge");
-    } else if (baseName.compare(QStringLiteral("brave"), Qt::CaseInsensitive) == 0) {
-        name = QStringLiteral("Brave");
-    } else if (baseName.compare(QStringLiteral("opera"), Qt::CaseInsensitive) == 0) {
-        name = QStringLiteral("Opera");
-    } else if (baseName.compare(QStringLiteral("iexplore"), Qt::CaseInsensitive) == 0) {
-        name = QStringLiteral("Internet Explorer");
-    } else if (baseName.compare(QStringLiteral("chromium"), Qt::CaseInsensitive) == 0) {
-        name = QStringLiteral("Chromium");
+    if (baseName.compare(kExeChrome, Qt::CaseInsensitive) == 0) {
+        name = kDisplayGoogleChrome;
+    } else if (baseName.compare(kExeFirefox, Qt::CaseInsensitive) == 0) {
+        name = kDisplayMozillaFirefox;
+    } else if (baseName.compare(kExeMsedge, Qt::CaseInsensitive) == 0) {
+        name = kDisplayMicrosoftEdge;
+    } else if (baseName.compare(kExeBrave, Qt::CaseInsensitive) == 0) {
+        name = kDisplayBrave;
+    } else if (baseName.compare(kExeOpera, Qt::CaseInsensitive) == 0) {
+        name = kDisplayOpera;
+    } else if (baseName.compare(kExeIexplore, Qt::CaseInsensitive) == 0) {
+        name = kDisplayInternetExplorer;
+    } else if (baseName.compare(kExeChromium, Qt::CaseInsensitive) == 0) {
+        name = kDisplayChromium;
     } else {
         name = baseName;
     }
-    entries_[QStringLiteral("Name")] = name;
+    entries_[kName] = name;
     icon_ = exePath;
     startupWMClass_ = QString();
     categories_ = QStringList();
@@ -179,16 +207,15 @@ bool DesktopEntry::parseFromExecutable(const QString &exePath) {
 
 std::expected<DesktopEntry, DesktopEntryError> readDesktopEntry(const QString &filename) {
 #ifdef Q_OS_MAC
-    if (filename.endsWith(QStringLiteral(".app"))) {
+    if (filename.endsWith(kSuffixApp)) {
         DesktopEntry entry;
         if (entry.parseAppBundle(filename)) {
             return entry;
         }
         return std::unexpected(DesktopEntryError::ParseFailed);
     }
-#endif
-#ifdef Q_OS_WIN
-    if (filename.endsWith(QStringLiteral(".exe"), Qt::CaseInsensitive)) {
+#elif defined(Q_OS_WIN)
+    if (filename.endsWith(kSuffixExe, Qt::CaseInsensitive)) {
         DesktopEntry entry;
         if (entry.parseFromExecutable(filename)) {
             return entry;
