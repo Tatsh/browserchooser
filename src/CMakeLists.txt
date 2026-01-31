@@ -1,6 +1,8 @@
 set(DISPLAY_NAME "Browser Chooser")
 configure_file(browserchooser.desktop.in browserchooser.desktop @ONLY)
 
+set(HELP_URL "https://github.com/Tatsh/browserchooser" CACHE STRING "URL for help documentation (F1)")
+
 set(BACKEND_SOURCES backend_common.cpp)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     list(APPEND BACKEND_SOURCES backend_linux.cpp)
@@ -36,6 +38,8 @@ add_executable(browserchooser
     urlparser.h
 )
 
+target_compile_definitions(browserchooser PRIVATE HELP_URL="${HELP_URL}")
+target_include_directories(browserchooser PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(browserchooser PRIVATE
     Qt6::Core
     Qt6::Gui

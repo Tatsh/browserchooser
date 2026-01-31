@@ -23,6 +23,8 @@ foxundermoon
 fsafe
 gmock
 iexplore
+ignoregeometry
+ignoregeometryrule
 iwyu
 jsonnet
 jsonschema
@@ -30,6 +32,9 @@ libc
 libjsonnet
 nrvo
 nullptr
+osascript
+percentu
+positionrule
 qobject
 qstringbuilder
 qtbase
@@ -37,6 +42,7 @@ reflow
 schemafile
 selectorwidget
 shellformat
+shlex
 strcmp
 strequal
 tatsh
@@ -45,6 +51,8 @@ urlparser
 weverything
 winget
 wiswa
+wmclass
+wmclassmatch
 wpessimizing
 wswitch
 wunsafe
