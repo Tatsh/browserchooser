@@ -27,7 +27,7 @@
       format: 'clang-format -i src/*.cpp src/*.h && yarn prettier -w .',
     },
   },
-  prettierignore+: ['*.desktop', '*.tags', 'src/icon.rc'],
+  prettierignore+: ['*.desktop', '*.tags', '*.m*'],
   cz+: {
     commitizen+: {
       version_files+: [
@@ -51,7 +51,7 @@
           cppStandard: 'c++23',
           includePath: [
             '${workspaceFolder}/src/**',
-            '${workspaceFolder}/build/src/browserchooser-widgets_autogen/include',
+            '${workspaceFolder}/build/src/browserchooser_autogen/include',
           ],
           name: 'Linux',
         },

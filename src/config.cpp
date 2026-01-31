@@ -18,10 +18,8 @@ static const auto kKeyIncludeNoDisplayBrowsers =
 static const auto kKeyHideGuestProfiles = QStringLiteral("General/hide_guest_profiles");
 static const auto kKeyHideBrowsersWithoutProfiles =
     QStringLiteral("General/hide_browsers_without_profiles");
-static const auto kKeyRememberChoiceChecked =
-    QStringLiteral("General/remember_choice_checked");
-static const auto kKeyRememberDomainWildcard =
-    QStringLiteral("General/remember_domain_wildcard");
+static const auto kKeyRememberChoiceChecked = QStringLiteral("General/remember_choice_checked");
+static const auto kKeyRememberDomainWildcard = QStringLiteral("General/remember_domain_wildcard");
 
 auto expandTilde(const QString &path) -> QString {
     if (path.startsWith(kTildeSlash)) {
@@ -140,9 +138,8 @@ QStringList AppConfig::getHiddenBrowsers() const {
 }
 
 IncludeNoDisplay AppConfig::includeNoDisplayBrowsers() const {
-    return settings_.value(kKeyIncludeNoDisplayBrowsers, false).toBool() ?
-               IncludeNoDisplay::Yes :
-               IncludeNoDisplay::No;
+    return settings_.value(kKeyIncludeNoDisplayBrowsers, false).toBool() ? IncludeNoDisplay::Yes :
+                                                                           IncludeNoDisplay::No;
 }
 
 bool AppConfig::hideGuestProfiles() const {

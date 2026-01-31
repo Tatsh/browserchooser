@@ -12,6 +12,7 @@
 *.lock
 *.log
 *.m*
+*.mdc
 *.tags
 *~
 .*.swp
@@ -33,4 +34,3 @@
 /repo/
 /vcpkg_installed/
 node_modules/
-src/icon.rc

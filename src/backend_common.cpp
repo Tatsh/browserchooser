@@ -15,8 +15,7 @@
 
 QString getConfigFilePath() {
     static const auto kFmt = QStringLiteral("%1/browserchooserrc");
-    const auto configDir =
-        QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    const auto configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     return kFmt.arg(configDir);
 }
 
@@ -59,8 +58,8 @@ static bool isSafeShellChar(QChar c) {
     if (u >= 'a' && u <= 'z') {
         return true;
     }
-    return u == '%' || u == '+' || u == ',' || u == '-' || u == '.' ||
-           u == '/' || u == ':' || u == '=' || u == '@' || u == '_';
+    return u == '%' || u == '+' || u == ',' || u == '-' || u == '.' || u == '/' || u == ':' ||
+           u == '=' || u == '@' || u == '_';
 }
 
 QString quoteArg(const QString &arg) {
@@ -128,22 +127,18 @@ static QString launchCommandsKey(const QString &desktopPath, const QString &prof
     return kFmt.arg(desktopPath, profileName);
 }
 
-QList<QStringList> getPreLaunchCommands(const QString &desktopPath,
-                                         const QString &profileName) {
+QList<QStringList> getPreLaunchCommands(const QString &desktopPath, const QString &profileName) {
     static const auto kFmt = QStringLiteral("PreLaunchCommands/%1");
-    auto commands = readCommandListFromJson(
-        kFmt.arg(launchCommandsKey(desktopPath, profileName)));
+    auto commands = readCommandListFromJson(kFmt.arg(launchCommandsKey(desktopPath, profileName)));
     if (commands.isEmpty() && !profileName.isEmpty()) {
         commands = readCommandListFromJson(kFmt.arg(desktopPath));
     }
     return commands;
 }
 
-QList<QStringList> getPostLaunchCommands(const QString &desktopPath,
-                                          const QString &profileName) {
+QList<QStringList> getPostLaunchCommands(const QString &desktopPath, const QString &profileName) {
     static const auto kFmt = QStringLiteral("PostLaunchCommands/%1");
-    auto commands = readCommandListFromJson(
-        kFmt.arg(launchCommandsKey(desktopPath, profileName)));
+    auto commands = readCommandListFromJson(kFmt.arg(launchCommandsKey(desktopPath, profileName)));
     if (commands.isEmpty() && !profileName.isEmpty()) {
         commands = readCommandListFromJson(kFmt.arg(desktopPath));
     }

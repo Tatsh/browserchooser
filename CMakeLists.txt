@@ -17,6 +17,13 @@ set(CMAKE_AUTOUIC ON)
 
 option(BROWSERCHOOSER_CXX_WARN_ALL "Do not use." OFF)
 mark_as_advanced(BROWSERCHOOSER_CXX_WARN_ALL)
+set(BUNDLE_INSTALL_PREFIX
+    .
+    CACHE FILEPATH "Install the bundle to a custom directory. This can be an absolute path or \
+relative to CMAKE_INSTALL_PREFIX.")
+set(HELP_URL
+    "https://github.com/Tatsh/browserchooser"
+    CACHE STRING "URL for help documentation (F1).")
 
 find_package(ECM NO_MODULE REQUIRED)
 list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
@@ -97,8 +104,7 @@ elseif(APPLE)
   endif()
 endif()
 set(CPACK_THREADS 0)
-set(CPACK_PACKAGE_FILE_NAME
-    ${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${__cpack_system_name})
+set(CPACK_PACKAGE_FILE_NAME ${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${__cpack_system_name})
 
 if(WIN32)
   set(CPACK_GENERATOR NSIS ZIP)

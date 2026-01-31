@@ -29,8 +29,6 @@
 #include "selectorwidget.h"
 #include "string_constants.h"
 
-#include "build_config.h"
-
 namespace {
 
 static const auto kHtmlNowrap = QStringLiteral("<span style='white-space: nowrap;'>");

@@ -246,8 +246,7 @@ QStringList buildArgvForOption(const BrowserOption &option, const QString &url) 
 } // anonymous namespace
 
 QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
-    const auto hideProfileBrowsers =
-        readCommaSeparatedList(kKeyHideProfileBrowsers);
+    const auto hideProfileBrowsers = readCommaSeparatedList(kKeyHideProfileBrowsers);
     const auto userAppDir = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
     auto appDirs = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation);
     if (!userAppDir.isEmpty()) {
@@ -278,8 +277,8 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
             auto categories = entry.categories();
             auto mimeTypes = entry.mimeTypes();
             auto isWebBrowser = categories.contains(kWebBrowser);
-            auto handlesHttp = mimeTypes.contains(kSchemeHandlerHttp) ||
-                               mimeTypes.contains(kSchemeHandlerHttps);
+            auto handlesHttp =
+                mimeTypes.contains(kSchemeHandlerHttp) || mimeTypes.contains(kSchemeHandlerHttps);
             if (!isWebBrowser || !handlesHttp) {
                 continue;
             }
@@ -314,8 +313,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
                 }
             } else {
                 auto configDirName = getChromiumConfigDirName(exeName);
-                auto configDir =
-                    kFmtPath.arg(getChromeConfigBasePath(), configDirName);
+                auto configDir = kFmtPath.arg(getChromeConfigBasePath(), configDirName);
                 auto localStatePath = kFmtLocalState.arg(configDir);
                 if (QDir(configDir).exists() && QFile::exists(localStatePath)) {
                     profilePairs = getChromeProfiles(configDir);

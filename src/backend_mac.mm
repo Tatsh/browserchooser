@@ -125,8 +125,7 @@ QString getChromiumConfigDirForBundle(const QString &bundlePath) {
 }
 
 QString getFirefoxConfigDir() {
-    const auto supportBase =
-        QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
+    const auto supportBase = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
     if (supportBase.isEmpty()) {
         return {};
     }
@@ -183,7 +182,7 @@ QString getBundleIdentifier(const QString &bundlePath) {
         if (![value isKindOfClass:[NSString class]]) {
             return {};
         }
-        return stringFromNSString((NSString *)value);
+        return QString::fromNSString(value);
     }
 }
 
@@ -192,8 +191,7 @@ QString getBundleIdentifier(const QString &bundlePath) {
 QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
     QList<BrowserOption> options;
     // Use ApplicationsLocation for /Applications and ~/Applications on macOS.
-    auto userAppDir =
-        QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+    auto userAppDir = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
     if (userAppDir.isEmpty()) {
         static const auto kFmtApplications = QStringLiteral("%1/Applications");
         const auto fallback = kFmtApplications.arg(QDir::homePath());
@@ -231,9 +229,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
             }
             const auto nameForBundle = bundleName(bundlePath);
             const auto binaryPath =
-                entry.exec().isEmpty() ?
-                    QString() :
-                    kFmtMacOSPath.arg(bundlePath, entry.exec());
+                entry.exec().isEmpty() ? QString() : kFmtMacOSPath.arg(bundlePath, entry.exec());
             const auto canonicalBinaryPath =
                 binaryPath.isEmpty() || !QFile::exists(binaryPath) ?
                     QString() :
