@@ -12,15 +12,27 @@
 #include "browseroption.h"
 #include "desktopentry.h"
 #include "firefox_profile.h"
+#include "string_constants.h"
 
 namespace {
 
-static QString stringFromNSString(NSString *ns) {
-    if (!ns || ![ns isKindOfClass:[NSString class]]) {
-        return {};
-    }
-    return QString::fromUtf8([ns UTF8String]);
-}
+static const auto kFmtPlistPath = QStringLiteral("%1/Contents/Info.plist");
+static const auto kFmtMacOSPath = QStringLiteral("%1/Contents/MacOS/%2");
+static const auto kSuffixApp = QStringLiteral(".app");
+static const auto kSpaceArgs = QStringLiteral(" --args");
+static const auto kAppGoogleChrome = QStringLiteral("Google Chrome");
+static const auto kDirGoogleChrome = QStringLiteral("Google/Chrome");
+static const auto kAppChromium = QStringLiteral("Chromium");
+static const auto kAppChrome = QStringLiteral("Chrome");
+static const auto kAppBrave = QStringLiteral("Brave");
+static const auto kDirBraveSoftware = QStringLiteral("BraveSoftware/Brave-Browser");
+static const auto kAppEdge = QStringLiteral("Edge");
+static const auto kAppMicrosoftEdge = QStringLiteral("Microsoft Edge");
+static const auto kAppFirefox = QStringLiteral("Firefox");
+static const auto kAppSafari = QStringLiteral("Safari");
+static const auto kArgA = QStringLiteral("-a");
+static const auto kArgArgs = QStringLiteral("--args");
+static const auto kOpen = QStringLiteral("open");
 
 static NSDictionary *loadPlist(const QString &plistPath) {
     const QByteArray pathUtf8 = plistPath.toUtf8();
@@ -29,7 +41,7 @@ static NSDictionary *loadPlist(const QString &plistPath) {
 }
 
 bool appHandlesHttpHttps(const QString &bundlePath) {
-    const auto plistPath = bundlePath + QStringLiteral("/Contents/Info.plist");
+    const auto plistPath = kFmtPlistPath.arg(bundlePath);
     if (!QFile::exists(plistPath)) {
         return false;
     }
@@ -66,7 +78,7 @@ bool appHandlesHttpHttps(const QString &bundlePath) {
 }
 
 QString getChromiumConfigDirForBundle(const QString &bundlePath) {
-    const auto plistPath = bundlePath + QStringLiteral("/Contents/Info.plist");
+    const auto plistPath = kFmtPlistPath.arg(bundlePath);
     if (!QFile::exists(plistPath)) {
         return {};
     }
@@ -83,7 +95,7 @@ QString getChromiumConfigDirForBundle(const QString &bundlePath) {
         NSString *crProductDir = root[@"CrProductDirName"];
         if (crProductDir && [crProductDir isKindOfClass:[NSString class]] &&
             [crProductDir length] > 0) {
-            return supportBase + QLatin1Char('/') + stringFromNSString(crProductDir);
+            return kFmtPath.arg(supportBase, QString::fromNSString(crProductDir));
         }
         NSString *appName = root[@"CFBundleName"];
         if (!appName || ![appName isKindOfClass:[NSString class]] || [appName length] == 0) {
@@ -92,22 +104,23 @@ QString getChromiumConfigDirForBundle(const QString &bundlePath) {
         if (!appName || ![appName isKindOfClass:[NSString class]] || [appName length] == 0) {
             return {};
         }
-        QString appNameQ = stringFromNSString(appName);
+        QString appNameQ = QString::fromNSString(appName);
         QString dirName;
-        if (appNameQ == QStringLiteral("Google Chrome")) {
-            dirName = QStringLiteral("Google/Chrome");
-        } else if (appNameQ == QStringLiteral("Chromium")) {
-            dirName = QStringLiteral("Chromium");
-        } else if (appNameQ.contains(QStringLiteral("Chrome"))) {
-            dirName = QStringLiteral("Google/") + appNameQ;
-        } else if (appNameQ.contains(QStringLiteral("Brave"), Qt::CaseInsensitive)) {
-            dirName = QStringLiteral("BraveSoftware/Brave-Browser");
-        } else if (appNameQ.contains(QStringLiteral("Edge"), Qt::CaseInsensitive)) {
-            dirName = QStringLiteral("Microsoft Edge");
+        if (appNameQ == kAppGoogleChrome) {
+            dirName = kDirGoogleChrome;
+        } else if (appNameQ == kAppChromium) {
+            dirName = kAppChromium;
+        } else if (appNameQ.contains(kAppChrome)) {
+            static const auto kFmtGoogleDir = QStringLiteral("Google/%1");
+            dirName = kFmtGoogleDir.arg(appNameQ);
+        } else if (appNameQ.contains(kAppBrave, Qt::CaseInsensitive)) {
+            dirName = kDirBraveSoftware;
+        } else if (appNameQ.contains(kAppEdge, Qt::CaseInsensitive)) {
+            dirName = kAppMicrosoftEdge;
         } else {
             return {};
         }
-        return supportBase + QLatin1Char('/') + dirName;
+        return kFmtPath.arg(supportBase, dirName);
     }
 }
 
@@ -117,17 +130,18 @@ QString getFirefoxConfigDir() {
     if (supportBase.isEmpty()) {
         return {};
     }
-    return supportBase + QStringLiteral("/Firefox");
+    static const auto kFmtFirefox = QStringLiteral("%1/Firefox");
+    return kFmtFirefox.arg(supportBase);
 }
 
 bool isFirefoxBundle(const QString &bundlePath) {
     const auto baseName = QFileInfo(bundlePath).completeBaseName();
-    return baseName.contains(QStringLiteral("Firefox"), Qt::CaseInsensitive);
+    return baseName.contains(kAppFirefox, Qt::CaseInsensitive);
 }
 
 bool isSafariBundle(const QString &bundlePath) {
     const auto baseName = QFileInfo(bundlePath).completeBaseName();
-    return baseName.compare(QStringLiteral("Safari"), Qt::CaseInsensitive) == 0;
+    return baseName.compare(kAppSafari, Qt::CaseInsensitive) == 0;
 }
 
 bool isWebBrowser(const QString &bundlePath) {
@@ -136,14 +150,14 @@ bool isWebBrowser(const QString &bundlePath) {
 
 QString getCanonicalBrowserPath(const BrowserOption &option) {
     const auto bundlePath = option.desktopPath();
-    if (bundlePath.isEmpty() || !bundlePath.endsWith(QStringLiteral(".app"))) {
+    if (bundlePath.isEmpty() || !bundlePath.endsWith(kSuffixApp)) {
         return {};
     }
     const auto execName = option.entry().exec();
     if (execName.isEmpty()) {
         return {};
     }
-    const auto binaryPath = bundlePath + QStringLiteral("/Contents/MacOS/") + execName;
+    const auto binaryPath = kFmtMacOSPath.arg(bundlePath, execName);
     if (!QFile::exists(binaryPath)) {
         return {};
     }
@@ -156,7 +170,7 @@ QString bundleName(const QString &bundlePath) {
 }
 
 QString getBundleIdentifier(const QString &bundlePath) {
-    const auto plistPath = bundlePath + QStringLiteral("/Contents/Info.plist");
+    const auto plistPath = kFmtPlistPath.arg(bundlePath);
     if (!QFile::exists(plistPath)) {
         return {};
     }
@@ -181,7 +195,8 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
     auto userAppDir =
         QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
     if (userAppDir.isEmpty()) {
-        const auto fallback = QDir::homePath() + QStringLiteral("/Applications");
+        static const auto kFmtApplications = QStringLiteral("%1/Applications");
+        const auto fallback = kFmtApplications.arg(QDir::homePath());
         if (QDir(fallback).exists()) {
             userAppDir = fallback;
         }
@@ -191,8 +206,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
         appDirs.removeAll(userAppDir);
         appDirs.prepend(userAppDir);
     }
-    const auto hideProfileBrowsers =
-        readCommaSeparatedList(QStringLiteral("Advanced/hideProfileBrowsers"));
+    const auto hideProfileBrowsers = readCommaSeparatedList(kKeyHideProfileBrowsers);
     const auto firefoxConfigDir = getFirefoxConfigDir();
     const auto firefoxProfiles = QDir(firefoxConfigDir).exists() ?
                                      getFirefoxProfiles(firefoxConfigDir) :
@@ -204,7 +218,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
         }
         const auto entries = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
         for (const auto &name : entries) {
-            if (!name.endsWith(QStringLiteral(".app"))) {
+            if (!name.endsWith(kSuffixApp)) {
                 continue;
             }
             const auto bundlePath = dir.absoluteFilePath(name);
@@ -219,7 +233,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
             const auto binaryPath =
                 entry.exec().isEmpty() ?
                     QString() :
-                    bundlePath + QStringLiteral("/Contents/MacOS/") + entry.exec();
+                    kFmtMacOSPath.arg(bundlePath, entry.exec());
             const auto canonicalBinaryPath =
                 binaryPath.isEmpty() || !QFile::exists(binaryPath) ?
                     QString() :
@@ -246,7 +260,7 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
         }
     }
     sortBrowserOptionsByDisplayName(options);
-    const auto hideBrowsers = readCommaSeparatedList(QStringLiteral("Advanced/hideBrowsers"));
+    const auto hideBrowsers = readCommaSeparatedList(kKeyHideBrowsers);
     if (!hideBrowsers.isEmpty()) {
         options.removeIf([&hideBrowsers](const BrowserOption &opt) {
             const auto name = bundleName(opt.desktopPath());
@@ -263,44 +277,46 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay) {
 void launchBrowser(const BrowserOption &option, const QStringList &urls) {
     runPreLaunchCommands(option.desktopPath(), option.profileName());
     const auto bundlePath = option.desktopPath();
-    if (!bundlePath.endsWith(QStringLiteral(".app")) || !QDir(bundlePath).exists()) {
+    if (!bundlePath.endsWith(kSuffixApp) || !QDir(bundlePath).exists()) {
         return;
     }
-    QStringList args{QStringLiteral("-a"), bundlePath};
+    QStringList args{kArgA, bundlePath};
     QStringList appArgs;
     if (!option.profileName().isEmpty()) {
         if (isFirefoxBundle(bundlePath)) {
-            appArgs << QStringLiteral("-P") << option.profileName();
+            appArgs << kArgP << option.profileName();
         } else {
-            appArgs << QStringLiteral("--profile-directory=") + option.profileName();
+            appArgs << kFmtProfileDirectory.arg(option.profileName());
         }
     }
     appArgs << urls;
     if (!appArgs.isEmpty()) {
-        args << QStringLiteral("--args") << appArgs;
+        args << kArgArgs << appArgs;
     }
-    QProcess::startDetached(QStringLiteral("open"), args);
+    QProcess::startDetached(kOpen, args);
     runPostLaunchCommands(option.desktopPath(), option.profileName());
 }
 
 QString getCommandLineForDisplay(const BrowserOption &option, const QString &url) {
+    static const auto kFmtOpenApp = QStringLiteral("open -a \"%1\"");
     const auto bundlePath = option.desktopPath();
-    QString cmd = QStringLiteral("open -a \"%1\"").arg(bundlePath);
+    QString cmd = kFmtOpenApp.arg(bundlePath);
     QStringList appArgs;
     if (!option.profileName().isEmpty()) {
         if (isFirefoxBundle(bundlePath)) {
-            appArgs << QStringLiteral("-P") << option.profileName();
+            appArgs << kArgP << option.profileName();
         } else {
-            appArgs << QStringLiteral("--profile-directory=") + option.profileName();
+            appArgs << kFmtProfileDirectory.arg(option.profileName());
         }
     }
     if (!url.isEmpty()) {
         appArgs << url;
     }
     if (!appArgs.isEmpty()) {
-        cmd += QStringLiteral(" --args");
+        cmd += kSpaceArgs;
         for (const auto &arg : appArgs) {
-            cmd += QLatin1Char(' ') + QStringLiteral("\"%1\"").arg(arg);
+            static const auto kFmtQuotedArg = QStringLiteral(" \"%1\"");
+            cmd += kFmtQuotedArg.arg(arg);
         }
     }
     return cmd;
@@ -315,7 +331,7 @@ QString getExecutablePath(const BrowserOption &option) {
 }
 
 QString getChromeUserDataDir(const QString &desktopPath) {
-    if (!desktopPath.endsWith(QStringLiteral(".app")) || !QDir(desktopPath).exists()) {
+    if (!desktopPath.endsWith(kSuffixApp) || !QDir(desktopPath).exists()) {
         return {};
     }
     return getChromiumConfigDirForBundle(desktopPath);
