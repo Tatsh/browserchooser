@@ -12,6 +12,7 @@
 [![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/browserchooser/v0.0.1/master)](https://github.com/Tatsh/browserchooser/compare/v0.0.1...master)
 [![CodeQL](https://github.com/Tatsh/browserchooser/actions/workflows/codeql.yml/badge.svg)](https://github.com/Tatsh/browserchooser/actions/workflows/codeql.yml)
 [![QA](https://github.com/Tatsh/browserchooser/actions/workflows/qa.yml/badge.svg)](https://github.com/Tatsh/browserchooser/actions/workflows/qa.yml)
+[![Tests](https://github.com/Tatsh/browserchooser/actions/workflows/tests.yml/badge.svg)](https://github.com/Tatsh/browserchooser/actions/workflows/tests.yml)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/dependabot)
 [![GitHub Pages](https://github.com/Tatsh/browserchooser/badge/pages)](https://Tatsh.github.io/browserchooser/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
