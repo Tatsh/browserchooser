@@ -29,29 +29,27 @@ bool DesktopEntry::parseAppBundle(const QString &bundlePath) {
             return false;
         }
         NSString *execNameNs = root[@"CFBundleExecutable"];
-        if (!execNameNs || ![execNameNs isKindOfClass:[NSString class]] ||
-            [execNameNs length] == 0) {
+        if (!execNameNs || ![execNameNs isKindOfClass:NSString.class] || execNameNs.length == 0) {
             return false;
         }
-        QString execName = QString::fromNSString(execNameNs);
+        auto execName = QString::fromNSString(execNameNs);
         exec_ = kFmtMacOSPath.arg(bundlePath, execName);
         if (!QFile::exists(exec_)) {
             return false;
         }
         NSString *nameNs = root[@"CFBundleDisplayName"];
-        if (!nameNs || ![nameNs isKindOfClass:[NSString class]] || [nameNs length] == 0) {
+        if (!nameNs || ![nameNs isKindOfClass:NSString.class] || nameNs.length == 0) {
             nameNs = root[@"CFBundleName"];
         }
-        if (!nameNs || ![nameNs isKindOfClass:[NSString class]] || [nameNs length] == 0) {
+        if (!nameNs || ![nameNs isKindOfClass:NSString.class] || nameNs.length == 0) {
             nameNs = execNameNs;
         }
         QString name = QString::fromNSString(nameNs);
         entries_[kName] = name;
         NSString *iconFileNs = root[@"CFBundleIconFile"];
-        icon_ =
-            iconFileNs && [iconFileNs isKindOfClass:[NSString class]] && [iconFileNs length] > 0 ?
-                QString::fromNSString(iconFileNs) :
-                execName;
+        icon_ = iconFileNs && [iconFileNs isKindOfClass:NSString.class] && iconFileNs.length > 0 ?
+                    QString::fromNSString(iconFileNs) :
+                    execName;
         startupWMClass_ = QString();
         categories_ = QStringList();
         mimeTypes_ = QStringList();

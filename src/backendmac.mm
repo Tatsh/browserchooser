@@ -51,23 +51,23 @@ bool appHandlesHttpHttps(const QString &bundlePath) {
             return false;
         }
         NSArray *urlTypes = root[@"CFBundleURLTypes"];
-        if (!urlTypes || ![urlTypes isKindOfClass:[NSArray class]]) {
+        if (!urlTypes || ![urlTypes isKindOfClass:NSArray.class]) {
             return false;
         }
         for (id typeVal in urlTypes) {
-            if (![typeVal isKindOfClass:[NSDictionary class]]) {
+            if (![typeVal isKindOfClass:NSDictionary.class]) {
                 continue;
             }
             NSDictionary *type = (NSDictionary *)typeVal;
             NSArray *schemes = type[@"CFBundleURLSchemes"];
-            if (!schemes || ![schemes isKindOfClass:[NSArray class]]) {
+            if (!schemes || ![schemes isKindOfClass:NSArray.class]) {
                 continue;
             }
             for (id schemeVal in schemes) {
-                if (![schemeVal isKindOfClass:[NSString class]]) {
+                if (![schemeVal isKindOfClass:NSString.class]) {
                     continue;
                 }
-                NSString *scheme = [(NSString *)schemeVal lowercaseString];
+                NSString *scheme = ((NSString *)schemeVal).lowercaseString;
                 if ([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"]) {
                     return true;
                 }
@@ -93,18 +93,18 @@ QString getChromiumConfigDirForBundle(const QString &bundlePath) {
             return {};
         }
         NSString *crProductDir = root[@"CrProductDirName"];
-        if (crProductDir && [crProductDir isKindOfClass:[NSString class]] &&
-            [crProductDir length] > 0) {
+        if (crProductDir && [crProductDir isKindOfClass:NSString.class] &&
+            crProductDir.length > 0) {
             return kFmtPath.arg(supportBase, QString::fromNSString(crProductDir));
         }
         NSString *appName = root[@"CFBundleName"];
-        if (!appName || ![appName isKindOfClass:[NSString class]] || [appName length] == 0) {
+        if (!appName || ![appName isKindOfClass:NSString.class] || appName.length == 0) {
             appName = root[@"CFBundleExecutable"];
         }
-        if (!appName || ![appName isKindOfClass:[NSString class]] || [appName length] == 0) {
+        if (!appName || ![appName isKindOfClass:NSString.class] || appName.length == 0) {
             return {};
         }
-        QString appNameQ = QString::fromNSString(appName);
+        auto appNameQ = QString::fromNSString(appName);
         QString dirName;
         if (appNameQ == kAppGoogleChrome) {
             dirName = kDirGoogleChrome;
@@ -179,7 +179,7 @@ QString getBundleIdentifier(const QString &bundlePath) {
             return {};
         }
         id value = root[@"CFBundleIdentifier"];
-        if (![value isKindOfClass:[NSString class]]) {
+        if (![value isKindOfClass:NSString.class]) {
             return {};
         }
         return QString::fromNSString(value);
