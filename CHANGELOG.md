@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
-## [0.0.1] - 2026-00-00
+## [0.0.1] - 2026-01-31
 
 First version.
 
