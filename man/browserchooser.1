@@ -1,0 +1,58 @@
+.\" Copyright (c) 2025 Browser Chooser authors.
+.\" License: see LICENSE.txt
+.TH BROWSERCHOOSER 1
+.SH NAME
+browserchooser \- choose which browser or profile to open a link with
+.SH SYNOPSIS
+.B browserchooser
+.I url
+.SH DESCRIPTION
+.B browserchooser
+shows a dialog to pick which browser—and optionally which profile—to use when
+opening a link. Set it as your default browser; when you click URLs in
+applications (email, chat, etc.), they invoke
+.B browserchooser
+with the URL and it lets you select the right browser or profile before opening.
+.PP
+Supports Chrome/Chromium, Firefox, Edge, Brave, Opera, and Safari (macOS), with
+profile listing and optional per-domain remembered choices.
+.SH OPTIONS
+.TP
+.I url
+The URL to open (e.g. \fBhttps://example.com\fR). Required; exactly one
+argument.
+.SH CONFIGURATION
+Configuration is stored in an INI file. Location depends on the platform:
+.TP
+Linux
+\fI~/.config/browserchooserrc\fR
+.TP
+macOS
+\fI~/Library/Preferences/browserchooserrc\fR
+.TP
+Windows
+\fI%APPDATA%\\browserchooserrc\fR
+.PP
+Sections include:
+.IP \(bu 4
+\fBGeneral\fR – options such as hiding guest profiles or browsers without
+profiles.
+.IP \(bu 4
+\fBRememberedBrowsers\fR – domain to browser (and optional profile) mappings
+saved when you use "Do not ask again".
+.IP \(bu 4
+\fBPreLaunchCommands\fR / \fBPostLaunchCommands\fR – commands to run before or
+after launching a given browser or browser+profile; keys are the browser path
+(or path plus profile). Values are JSON arrays of command arrays.
+.PP
+See the project README and documentation for full configuration details.
+.SH EXIT STATUS
+.TP
+.B 0
+A browser was chosen and launched successfully.
+.TP
+.B 1
+No URL was given, the user cancelled, or an error occurred.
+.SH SEE ALSO
+Full documentation and source:
+\fBhttps://github.com/Tatsh/browserchooser\fR

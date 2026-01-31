@@ -113,7 +113,7 @@ elseif(WIN32)
   set(executable_path "$<TARGET_FILE_NAME:browserchooser>")
   set(executable_dir "${CMAKE_INSTALL_BINDIR}")
 endif()
-if(NOT NON_PORTABLE_MACOS_BUNDLE OR WIN32)
+if(APPLE OR WIN32)
   qt_generate_deploy_script(
     TARGET
     browserchooser
@@ -130,7 +130,7 @@ qt_deploy_runtime_dependencies(
 endif()
 install(TARGETS browserchooser RUNTIME_DEPENDENCY_SET browserchooser-deps
         BUNDLE DESTINATION ${BUNDLE_INSTALL_PREFIX})
-if(NOT NON_PORTABLE_MACOS_BUNDLE OR WIN32)
+if(APPLE OR WIN32)
   install(SCRIPT ${deploy_script})
 endif()
 if(APPLE)
@@ -138,7 +138,7 @@ if(APPLE)
     FILES ${CMAKE_CURRENT_BINARY_DIR}/browserchooser.icns
     DESTINATION "${BUNDLE_INSTALL_PREFIX}/$<TARGET_FILE_NAME:browserchooser>.app/Contents/Resources"
   )
-  if(NOT NON_PORTABLE_MACOS_BUNDLE)
+  if(APPLE)
     install(
       FILES ../LICENSE.txt ../README.md ../CHANGELOG.md ../SECURITY.md ../CITATION.cff
       DESTINATION
