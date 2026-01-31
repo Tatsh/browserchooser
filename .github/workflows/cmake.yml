@@ -77,7 +77,6 @@ jobs:
           cmake -G Ninja -B ${{steps.fixed_workspace.outputs.out}}/build
           --install-prefix ${{steps.fixed_workspace.outputs.out}}/build/prefix
           -DCMAKE_BUILD_TYPE=${{matrix.build-type}}
-          -DFHS=OFF
         shell: msys2 {0}
       - name: Build
         run: cmake --build ${{steps.fixed_workspace.outputs.out}}/build --verbose
@@ -135,14 +134,11 @@ jobs:
           sudo apt-get install -y extra-cmake-modules lcov tree
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
-        with:
-          modules: qtmultimedia
       - name: Configure
         run: >-
           cmake -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -B ${{github.workspace}}/build
           --install-prefix ${{github.workspace}}/build/AppDir/usr
           -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
-          -DFHS=ON
       - name: Build
         run: cmake --build ${{github.workspace}}/build --verbose --config ${{matrix.build-type}}
       - name: Install
