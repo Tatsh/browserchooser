@@ -27,8 +27,8 @@ static const auto kChromiumBrowser = QStringLiteral("chromium-browser");
 static const auto kChromium = QStringLiteral("chromium");
 static const auto kGoogleChromeStable = QStringLiteral("google-chrome-stable");
 static const auto kGoogleChrome = QStringLiteral("google-chrome");
-static const auto kBravBrowser = QStringLiteral("brave-browser");
-static const auto kBrav = QStringLiteral("brave");
+static const auto kBraveBrowser = QStringLiteral("brave-browser");
+static const auto kBrave = QStringLiteral("brave");
 static const auto kBraveSoftwareBraveBrowser = QStringLiteral("BraveSoftware/Brave-Browser");
 static const auto kMicrosoftEdgeStable = QStringLiteral("microsoft-edge-stable");
 static const auto kMicrosoftEdge = QStringLiteral("microsoft-edge");
@@ -64,10 +64,10 @@ QString getChromiumConfigDirName(const QString &exeName) {
     if (base == kGoogleChromeStable) {
         return kGoogleChrome;
     }
-    if (base == kBravBrowser) {
+    if (base == kBraveBrowser) {
         return kBraveSoftwareBraveBrowser;
     }
-    if (base == kBrav) {
+    if (base == kBrave) {
         return kBraveSoftwareBraveBrowser;
     }
     if (base == kMicrosoftEdgeStable) {
