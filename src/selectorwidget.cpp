@@ -2,15 +2,18 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QMap>
+#include <QtCore/QSet>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QUrl>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QDesktopServices>
+#include <QtGui/QFontMetrics>
 #include <QtGui/QIcon>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QPixmap>
+
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGridLayout>
@@ -24,8 +27,25 @@
 #include "browserchooser.h"
 #include "desktopentry.h"
 #include "selectorwidget.h"
+#include "string_constants.h"
+
+#include "build_config.h"
 
 namespace {
+
+static const auto kHtmlNowrap = QStringLiteral("<span style='white-space: nowrap;'>");
+static const auto kHtmlEndSpan = QStringLiteral("</span>");
+static const auto kHtmlFormat =
+    QStringLiteral("<span style='font-weight: normal; font-size: 11px;'>"
+                   "%1<h3>Command line</h3><code>%2</code>%3<br>"
+                   "%1<h3>Desktop file</h3><code>%4</code>%3</span>");
+static const auto kThemeApplicationsInternet = QStringLiteral("applications-internet");
+static const auto kThemeWebBrowser = QStringLiteral("web-browser");
+static const auto kThemeUserIdentity = QStringLiteral("user-identity");
+static const auto kThemeUser = QStringLiteral("user");
+static const auto kSectionHeaderStyle =
+    QStringLiteral("font-weight: bold; font-size: 13px; margin-top: 2px; margin-bottom: 8px;");
+static const auto kHelpUrl = QStringLiteral(BROWSERCHOOSER_HELP_URL);
 
 /** Returns an icon with the image at @a path masked to a circle of @a size pixels. */
 QIcon iconFromPathMaskedAsCircle(const QString &path, int size) {
@@ -51,12 +71,8 @@ QIcon iconFromPathMaskedAsCircle(const QString &path, int size) {
 }
 
 QString formatBrowserInfoHtml(const QString &commandLine, const QString &desktopPath) {
-    const auto nowrap = QStringLiteral("<span style='white-space: nowrap;'>");
-    const auto endSpan = QStringLiteral("</span>");
-    return QStringLiteral("<span style='font-weight: normal; font-size: 11px;'>"
-                          "%1<h3>Command line</h3><code>%2</code>%3<br>"
-                          "%1<h3>Desktop file</h3><code>%4</code>%3</span>")
-        .arg(nowrap, commandLine.toHtmlEscaped(), endSpan, desktopPath.toHtmlEscaped());
+    return kHtmlFormat.arg(
+        kHtmlNowrap, commandLine.toHtmlEscaped(), kHtmlEndSpan, desktopPath.toHtmlEscaped());
 }
 
 } // anonymous namespace
@@ -67,13 +83,44 @@ SelectorWidget::SelectorWidget(BrowserChooser *chooser, QWidget *parent)
 }
 
 QString SelectorWidget::getBaseDomain(const QString &domain) {
-    // Extract base domain (e.g., google.com from www.google.com).
+    // Extract registrable/base domain (e.g. google.com from www.google.com,
+    // amazon.co.uk from www.amazon.co.uk).
     auto parts = domain.split(QLatin1Char('.'));
     if (parts.size() <= 2) {
         return domain;
     }
-    // Return last two parts (handles most cases like example.com).
-    // For co.uk style domains this isn't perfect, but good enough.
+    // Known two-part public suffixes (multi-part TLDs). When the last two
+    // parts form one of these, the base domain is the last three parts.
+    static const QSet<QString> kTwoPartSuffixes = {
+        QStringLiteral("ac.uk"),   QStringLiteral("asn.au"),   QStringLiteral("co.au"),
+        QStringLiteral("co.id"),   QStringLiteral("co.il"),    QStringLiteral("co.in"),
+        QStringLiteral("co.jp"),   QStringLiteral("co.kr"),    QStringLiteral("co.nz"),
+        QStringLiteral("co.th"),   QStringLiteral("co.uk"),    QStringLiteral("co.za"),
+        QStringLiteral("com.au"),  QStringLiteral("com.br"),   QStringLiteral("com.mx"),
+        QStringLiteral("ed.jp"),   QStringLiteral("edu.au"),   QStringLiteral("gen.nz"),
+        QStringLiteral("go.jp"),   QStringLiteral("gov.uk"),   QStringLiteral("gr.jp"),
+        QStringLiteral("id.au"),   QStringLiteral("lg.jp"),    QStringLiteral("ltd.uk"),
+        QStringLiteral("me.uk"),   QStringLiteral("ne.jp"),    QStringLiteral("net.au"),
+        QStringLiteral("net.br"),  QStringLiteral("net.uk"),   QStringLiteral("or.jp"),
+        QStringLiteral("org.au"),  QStringLiteral("org.uk"),   QStringLiteral("ac.jp"),
+        QStringLiteral("plc.uk"),  QStringLiteral("sch.uk"),   QStringLiteral("ac.nz"),
+        QStringLiteral("gov.au"),  QStringLiteral("govt.nz"),  QStringLiteral("geek.nz"),
+        QStringLiteral("kiwi.nz"), QStringLiteral("maori.nz"), QStringLiteral("school.nz"),
+        QStringLiteral("net.nz"),  QStringLiteral("org.nz"),   QStringLiteral("com.ar"),
+        QStringLiteral("net.in"),  QStringLiteral("org.in"),   QStringLiteral("ac.in"),
+        QStringLiteral("edu.in"),  QStringLiteral("gov.in"),   QStringLiteral("res.in"),
+        QStringLiteral("gen.in"),  QStringLiteral("firm.in"),  QStringLiteral("ind.in"),
+        QStringLiteral("org.za"),  QStringLiteral("web.za"),   QStringLiteral("net.za"),
+        QStringLiteral("gov.za"),  QStringLiteral("edu.za"),   QStringLiteral("mil.za"),
+        QStringLiteral("ac.za"),   QStringLiteral("law.za"),   QStringLiteral("or.kr"),
+        QStringLiteral("go.kr"),   QStringLiteral("ac.kr"),    QStringLiteral("ne.kr"),
+        QStringLiteral("re.kr"),   QStringLiteral("org.mx"),   QStringLiteral("gob.mx"),
+        QStringLiteral("edu.mx"),  QStringLiteral("net.mx"),   QStringLiteral("web.mx"),
+    };
+    const auto twoPartSuffix = parts.mid(parts.size() - 2).join(QLatin1Char('.'));
+    if (kTwoPartSuffixes.contains(twoPartSuffix)) {
+        return parts.mid(parts.size() - 3).join(QLatin1Char('.'));
+    }
     return parts.mid(parts.size() - 2).join(QLatin1Char('.'));
 }
 
@@ -94,23 +141,40 @@ void SelectorWidget::setupWindow() {
         radioContainer_ = new QWidget(this);
         auto *radioLayout = new QVBoxLayout(radioContainer_);
         radioLayout->setContentsMargins(20, 0, 0, 0);
+        exactDomainRadio_ =
+            new QRadioButton(tr("Open %1 with this browser").arg(domain_), radioContainer_);
         wildcardDomainRadio_ = new QRadioButton(
             tr("Open %1 and all subdomains with this browser").arg(baseDomain_), radioContainer_);
-        exactDomainRadio_ =
-            new QRadioButton(tr("Open only %1 with this browser").arg(domain_), radioContainer_);
-        wildcardDomainRadio_->setChecked(true);
-        radioLayout->addWidget(wildcardDomainRadio_);
+        const bool useWildcard = chooser_->rememberDomainWildcard();
+        wildcardDomainRadio_->setChecked(useWildcard);
+        exactDomainRadio_->setChecked(!useWildcard);
         radioLayout->addWidget(exactDomainRadio_);
+        radioLayout->addWidget(wildcardDomainRadio_);
         radioContainer_->setVisible(rememberCheckBox_->isChecked());
     }
     auto *outerLayout = new QVBoxLayout(this);
     outerLayout->setContentsMargins(10, 10, 10, 10);
+    urlToOpen_ = chooser_->urlToOpen();
+    if (!urlToOpen_.isEmpty()) {
+        urlLabel_ = new QLabel(this);
+        urlLabel_->setMaximumWidth(500);
+        urlLabel_->setToolTip(urlToOpen_);
+        urlLabel_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        urlLabel_->setStyleSheet(
+            QStringLiteral("color: palette(placeholder-text); font-size: 11px;"));
+        urlLabel_->setWordWrap(false);
+        const auto w = urlLabel_->maximumWidth();
+        const auto elided = urlLabel_->fontMetrics().elidedText(urlToOpen_, Qt::ElideMiddle, w);
+        urlLabel_->setText(tr("Opening %1").arg(elided));
+        outerLayout->addWidget(urlLabel_);
+        outerLayout->addSpacing(6);
+    }
     const auto &browsers = chooser_->availableBrowsers();
     QMap<QString, QList<int>> byBrowser;
     QList<int> otherIndices;
     QList<int> guestIndices;
     for (auto i = 0; i < browsers.size(); ++i) {
-        if (browsers[i].profileName() == QStringLiteral("Guest")) {
+        if (browsers[i].profileName() == kGuest) {
             guestIndices.append(i);
             continue;
         }
@@ -137,14 +201,12 @@ void SelectorWidget::setupWindow() {
         return w;
     };
 
-    const auto kSectionHeaderStyle =
-        QStringLiteral("font-weight: bold; font-size: 13px; margin-top: 2px; margin-bottom: 8px;");
     const auto kSectionHeaderIconSize = 16;
     const auto kSectionHeaderContentOffset = kSectionHeaderIconSize + 6;
     const auto kSectionSpacing = 12;
     const auto kSectionHeaderIconNudge = 5;
     auto createSectionHeader =
-        [kSectionHeaderStyle, kSectionHeaderIconSize, kSectionHeaderIconNudge](
+        [kSectionHeaderIconSize, kSectionHeaderIconNudge](
             const QString &text, const QIcon &icon, QWidget *parent) -> QWidget * {
         auto *w = new QWidget(parent);
         auto *layout = new QHBoxLayout(w);
@@ -237,9 +299,9 @@ void SelectorWidget::setupWindow() {
         }
         addSection(pair.first, pair.second, browserIcon, true, true, false);
     }
-    QIcon webIcon = QIcon::fromTheme(QStringLiteral("applications-internet"));
+    QIcon webIcon = QIcon::fromTheme(kThemeApplicationsInternet);
     if (webIcon.isNull()) {
-        webIcon = QIcon::fromTheme(QStringLiteral("web-browser"));
+        webIcon = QIcon::fromTheme(kThemeWebBrowser);
     }
     if (!otherIndices.isEmpty()) {
         otherSectionWidget_ = new QWidget(this);
@@ -275,9 +337,9 @@ void SelectorWidget::setupWindow() {
         guestSectionWidget_ = new QWidget(this);
         auto *guestLayout = new QVBoxLayout(guestSectionWidget_);
         guestLayout->setContentsMargins(0, 0, 0, 0);
-        QIcon userIcon = QIcon::fromTheme(QStringLiteral("user-identity"));
+        QIcon userIcon = QIcon::fromTheme(kThemeUserIdentity);
         if (userIcon.isNull()) {
-            userIcon = QIcon::fromTheme(QStringLiteral("user"));
+            userIcon = QIcon::fromTheme(kThemeUser);
         }
         guestLayout->addWidget(
             createSectionHeader(tr("Guest profiles"), userIcon, guestSectionWidget_));
@@ -323,25 +385,23 @@ void SelectorWidget::setupWindow() {
                 &SelectorWidget::onShowGuestCheckBoxToggled);
         outerLayout->addWidget(showGuestCheckBox_);
     }
-    if (!otherIndices.isEmpty()) {
-        hideBrowsersWithoutProfilesCheckBox_ = new QCheckBox(this);
-        hideBrowsersWithoutProfilesCheckBox_->setText(tr("Hide browsers without profiles"));
-        hideBrowsersWithoutProfilesCheckBox_->setChecked(chooser_->hideBrowsersWithoutProfiles());
-        connect(hideBrowsersWithoutProfilesCheckBox_,
-                &QCheckBox::toggled,
-                this,
-                &SelectorWidget::onHideBrowsersWithoutProfilesCheckBoxToggled);
-        outerLayout->addWidget(hideBrowsersWithoutProfilesCheckBox_);
-    }
+    hideBrowsersWithoutProfilesCheckBox_ = new QCheckBox(this);
+    hideBrowsersWithoutProfilesCheckBox_->setText(tr("Hide browsers without profiles"));
+    hideBrowsersWithoutProfilesCheckBox_->setChecked(chooser_->hideBrowsersWithoutProfiles());
+    connect(hideBrowsersWithoutProfilesCheckBox_,
+            &QCheckBox::toggled,
+            this,
+            &SelectorWidget::onHideBrowsersWithoutProfilesCheckBoxToggled);
+    outerLayout->addWidget(hideBrowsersWithoutProfilesCheckBox_);
     setLayout(outerLayout);
     // Focus first button.
     if (firstButton_) {
         firstButton_->setFocus();
     }
     setWindowTitle(tr("Open URL with"));
-    QIcon appIcon = QIcon::fromTheme(QStringLiteral("applications-internet"));
+    QIcon appIcon = QIcon::fromTheme(kThemeApplicationsInternet);
     if (appIcon.isNull()) {
-        appIcon = QIcon::fromTheme(QStringLiteral("web-browser"));
+        appIcon = QIcon::fromTheme(kThemeWebBrowser);
     }
     if (!appIcon.isNull()) {
         setWindowIcon(appIcon);
@@ -365,8 +425,7 @@ void SelectorWidget::closeEvent(QCloseEvent *event) {
 
 void SelectorWidget::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_F1) {
-        QDesktopServices::openUrl(QUrl(QStringLiteral(
-            "https://github.com/Tatsh/browserchooser/?tab=readme-ov-file#browser-chooser")));
+        QDesktopServices::openUrl(QUrl(kHelpUrl));
         event->accept();
         return;
     }
@@ -408,11 +467,14 @@ void SelectorWidget::onButtonClicked(int browserIndex) {
     const BrowserOption &option = browsers[browserIndex];
     if (rememberCheckBox_ && rememberCheckBox_->isChecked()) {
         QString domainPattern;
-        if (wildcardDomainRadio_ && wildcardDomainRadio_->isChecked()) {
-            domainPattern = QStringLiteral("*.") + baseDomain_;
+        const bool useWildcard = wildcardDomainRadio_ && wildcardDomainRadio_->isChecked();
+        if (useWildcard) {
+            static const auto kFmtWildcardDomain = QStringLiteral("*.%1");
+            domainPattern = kFmtWildcardDomain.arg(baseDomain_);
         } else {
             domainPattern = domain_;
         }
+        chooser_->setRememberDomainWildcard(useWildcard);
         chooser_->remember(option, domainPattern);
     }
     chooser_->openBrowser(option);
@@ -425,7 +487,7 @@ auto SelectorWidget::createBrowserEntry(const BrowserOption &option,
                                         bool browserNameOnly) -> QWidget * {
     auto entry = option.entry();
     auto *container = new QWidget(this);
-    auto isGuest = option.profileName() == QStringLiteral("Guest");
+    auto isGuest = option.profileName() == kGuest;
     container->setProperty("isGuest", isGuest);
     container->setVisible(true);
     container->setMaximumWidth(kEntryWidth);
@@ -437,9 +499,10 @@ auto SelectorWidget::createBrowserEntry(const BrowserOption &option,
     button->setFixedSize(kIconSize + 16, kIconSize + 16);
     button->setIconSize(QSize(kIconSize, kIconSize));
     const auto pathLower = option.desktopPath().toLower();
-    const bool isChromeProfile = option.profileName() != QStringLiteral("Guest") &&
-                                 (pathLower.contains(QStringLiteral("chrome")) ||
-                                  pathLower.contains(QStringLiteral("chromium")));
+    static const auto kChrome = QStringLiteral("chrome");
+    static const auto kChromium = QStringLiteral("chromium");
+    const bool isChromeProfile = option.profileName() != kGuest &&
+                                 (pathLower.contains(kChrome) || pathLower.contains(kChromium));
     QIcon iconToUse;
     if (isChromeProfile) {
         const auto picturePath =
@@ -448,10 +511,10 @@ auto SelectorWidget::createBrowserEntry(const BrowserOption &option,
             iconToUse = iconFromPathMaskedAsCircle(picturePath, kIconSize);
         }
         if (iconToUse.isNull()) {
-            iconToUse = QIcon::fromTheme(QStringLiteral("user-identity"));
+            iconToUse = QIcon::fromTheme(kThemeUserIdentity);
         }
         if (iconToUse.isNull()) {
-            iconToUse = QIcon::fromTheme(QStringLiteral("user"));
+            iconToUse = QIcon::fromTheme(kThemeUser);
         }
     }
     if (!iconToUse.isNull()) {
@@ -471,7 +534,7 @@ auto SelectorWidget::createBrowserEntry(const BrowserOption &option,
     const auto html = formatBrowserInfoHtml(commandLine, option.desktopPath());
     tooltipByIndex_[index] = html;
     QString labelText;
-    if (browserNameOnly || option.profileName() == QStringLiteral("Guest")) {
+    if (browserNameOnly || option.profileName() == kGuest) {
         labelText = option.entry().name();
     } else if (inSection) {
         labelText = option.profileLabel();
@@ -498,22 +561,29 @@ auto SelectorWidget::findIconPath(const QString &iconName) -> QString {
         return iconName;
     }
     // Common icon directories to search.
-    auto iconDirs = QStringList{QStringLiteral("/usr/share/icons/hicolor/48x48/apps"),
-                                QStringLiteral("/usr/share/icons/hicolor/64x64/apps"),
-                                QStringLiteral("/usr/share/icons/hicolor/128x128/apps"),
-                                QStringLiteral("/usr/share/icons/hicolor/256x256/apps"),
-                                QStringLiteral("/usr/share/icons/hicolor/scalable/apps"),
-                                QStringLiteral("/usr/share/pixmaps")};
+    static const auto kIconDir48 = QStringLiteral("/usr/share/icons/hicolor/48x48/apps");
+    static const auto kIconDir64 = QStringLiteral("/usr/share/icons/hicolor/64x64/apps");
+    static const auto kIconDir128 = QStringLiteral("/usr/share/icons/hicolor/128x128/apps");
+    static const auto kIconDir256 = QStringLiteral("/usr/share/icons/hicolor/256x256/apps");
+    static const auto kIconDirScalable = QStringLiteral("/usr/share/icons/hicolor/scalable/apps");
+    static const auto kPixmaps = QStringLiteral("/usr/share/pixmaps");
+    auto iconDirs =
+        QStringList{kIconDir48, kIconDir64, kIconDir128, kIconDir256, kIconDirScalable, kPixmaps};
     // Add user icon directories.
     auto homeDir = QDir::homePath();
-    iconDirs.prepend(homeDir + QStringLiteral("/.local/share/icons/hicolor/48x48/apps"));
-    iconDirs.prepend(homeDir + QStringLiteral("/.local/share/icons/hicolor/64x64/apps"));
+    static const auto kFmtIconDir48 = QStringLiteral("%1/.local/share/icons/hicolor/48x48/apps");
+    static const auto kFmtIconDir64 = QStringLiteral("%1/.local/share/icons/hicolor/64x64/apps");
+    iconDirs.prepend(kFmtIconDir48.arg(homeDir));
+    iconDirs.prepend(kFmtIconDir64.arg(homeDir));
     // Extensions to try.
-    auto extensions =
-        QStringList{QStringLiteral(".png"), QStringLiteral(".svg"), QStringLiteral(".xpm")};
+    static const auto kExtPng = QStringLiteral(".png");
+    static const auto kExtSvg = QStringLiteral(".svg");
+    static const auto kExtXpm = QStringLiteral(".xpm");
+    auto extensions = QStringList{kExtPng, kExtSvg, kExtXpm};
     for (const auto &dir : iconDirs) {
         for (const auto &ext : extensions) {
-            auto path = dir + QLatin1Char('/') + iconName + ext;
+            static const auto kFmtIconPath = QStringLiteral("%1/%2%3");
+            auto path = kFmtIconPath.arg(dir, iconName, ext);
             if (QFile::exists(path)) {
                 return path;
             }

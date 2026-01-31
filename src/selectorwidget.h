@@ -6,6 +6,7 @@
 
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QRadioButton>
 
 #include "browseroption.h"
@@ -50,6 +51,7 @@ private:
     static constexpr int kEntryWidth = 100;
 
     BrowserChooser *chooser_;
+    QLabel *urlLabel_ = nullptr;
     QCheckBox *rememberCheckBox_ = nullptr;
     QCheckBox *showGuestCheckBox_ = nullptr;
     QCheckBox *hideBrowsersWithoutProfilesCheckBox_ = nullptr;
@@ -60,6 +62,7 @@ private:
     QWidget *radioContainer_ = nullptr;
     QString domain_;
     QString baseDomain_;
+    QString urlToOpen_;
     QToolButton *firstButton_ = nullptr;
     QMap<int, QString> tooltipByIndex_;
 };
