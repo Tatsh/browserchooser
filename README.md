@@ -25,7 +25,12 @@
 [![Mastodon Follow](https://img.shields.io/mastodon/follow/109370961877277568?domain=hostux.social&style=social)](https://hostux.social/@Tatsh)
 [![Patreon](https://img.shields.io/badge/Patreon-Tatsh2-F96854?logo=patreon)](https://www.patreon.com/Tatsh2)
 
+<!-- [![Flathub link](https://flathub.org/api/badge?locale=en)]
+(https://flathub.org/apps/sh.tat.browserchooser) -->
+
 **Pick which browser—and which profile—to use when opening a link.**
+
+![Screenshot](https://raw.githubusercontent.com/Tatsh/browserchooser/master/screenshot.png)
 
 Set Browser Chooser to your default browser and when you click on URLs in non-browsers, it will
 display a simple dialogue so you can choose the right browser or profile to use, and optionally
