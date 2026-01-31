@@ -1,0 +1,10 @@
+[Browser Chooser]
+; This is an example for a 7680x2160 running at 1.5x scale equivalent to 5120x1440. If you do not
+; have the same screen you must adjust the position value.
+Description=Browser Chooser
+ignoregeometry=true
+ignoregeometryrule=2
+position=2335,632
+positionrule=3
+wmclass=browserchooser
+wmclassmatch=1
