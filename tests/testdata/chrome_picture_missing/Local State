@@ -1,0 +1,10 @@
+{
+  "profile": {
+    "info_cache": {
+      "Default": {
+        "gaia_picture_file_name": "nonexistent.png",
+        "name": "Test"
+      }
+    }
+  }
+}

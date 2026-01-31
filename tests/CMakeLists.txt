@@ -40,6 +40,14 @@ browserchooser_add_test(desktopentrytest ${CMAKE_CURRENT_SOURCE_DIR}/desktopentr
                         ${BROWSERCHOOSER_SRC_DIR}/desktopentry.cpp "")
 set_tests_properties(desktopentrytest PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+# browseroptiontest (needs testdata)
+set(BROWSEROPTIONTEST_SOURCES
+    ${BROWSERCHOOSER_SRC_DIR}/browseroption.cpp
+    ${BROWSERCHOOSER_SRC_DIR}/desktopentry.cpp)
+browserchooser_add_test(browseroptiontest ${CMAKE_CURRENT_SOURCE_DIR}/browseroptiontest.cpp
+                        "${BROWSEROPTIONTEST_SOURCES}" "")
+set_tests_properties(browseroptiontest PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
 # chromeprofiletest (needs testdata)
 browserchooser_add_test(chromeprofiletest ${CMAKE_CURRENT_SOURCE_DIR}/chromeprofiletest.cpp
                         ${BROWSERCHOOSER_SRC_DIR}/chromeprofile.cpp "")

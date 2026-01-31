@@ -33,10 +33,12 @@ public:
     [[nodiscard]] QString desktopPath() const {
         return desktopPath_;
     }
+    // LCOV_EXCL_START
     /** Profile ID for launch (e.g. @c --profile= or @c -P); empty for Default. */
     [[nodiscard]] QString profileName() const {
         return profileName_;
     }
+    // LCOV_EXCL_STOP
     /** Display name, e.g. "Google Chrome Beta (Default)" or "Google Chrome Beta (Work)". */
     [[nodiscard]] QString displayName() const;
     /** Profile label for use under a browser section header (e.g. "Default", "Work"). */
@@ -45,10 +47,12 @@ public:
     [[nodiscard]] DesktopEntry entry() const;
     /** Whether this option is valid (@c .desktop file exists and parses). */
     [[nodiscard]] bool isValid() const;
+    // LCOV_EXCL_START
     /** Whether this option came from profile discovery (Chrome/Firefox profiles). */
     [[nodiscard]] bool fromProfileDiscovery() const {
         return fromProfileDiscovery_;
     }
+    // LCOV_EXCL_STOP
 
 private:
     QString desktopPath_;

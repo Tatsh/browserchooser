@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Default Name
+Name[en]=English
+Name[en_US]=US English
+Exec=echo %u
+Icon=test

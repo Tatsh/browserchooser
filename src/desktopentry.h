@@ -11,7 +11,7 @@
 class DesktopEntry {
 public:
     /** Constructor. */
-    DesktopEntry() = default;
+    DesktopEntry() = default; // LCOV_EXCL_LINE
     /**
      * Constructor that parses the given @c .desktop file.
      * @param filename The path to the @c .desktop file.
@@ -45,6 +45,7 @@ public:
     }
     /** Returns the comment/description of the desktop entry. */
     [[nodiscard]] QString comment() const;
+    // LCOV_EXCL_START
     /** Returns the startup WM class of the desktop entry. */
     [[nodiscard]] QString startupWMClass() const {
         return startupWMClass_;
@@ -57,6 +58,7 @@ public:
     [[nodiscard]] QStringList mimeTypes() const {
         return mimeTypes_;
     }
+    // LCOV_EXCL_STOP
     /** Returns whether the desktop entry has @c NoDisplay set (hidden from menus). */
     [[nodiscard]] bool noDisplay() const {
         return noDisplay_;

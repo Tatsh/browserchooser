@@ -10,6 +10,8 @@ private Q_SLOTS:
     void wildcard_starPrefix_mismatch();
     void wildcard_regexPattern_matches();
     void wildcard_regexPattern_caseInsensitive();
+    void wildcard_nonStarPrefix_regexMatch();
+    void wildcard_nonStarPrefix_regexMismatch();
 };
 
 void DomainMatchTest::wildcard_starPrefix_matchesBaseDomain() {
@@ -34,6 +36,16 @@ void DomainMatchTest::wildcard_regexPattern_matches() {
 
 void DomainMatchTest::wildcard_regexPattern_caseInsensitive() {
     QVERIFY(matchesWildcardPattern(QStringLiteral("*.GitHub.IO"), QStringLiteral("a.github.io")));
+}
+
+void DomainMatchTest::wildcard_nonStarPrefix_regexMatch() {
+    // Pattern does not start with "*." so uses QRegularExpression wildcard path (line 27+).
+    QVERIFY(matchesWildcardPattern(QStringLiteral("www.*.com"), QStringLiteral("www.google.com")));
+}
+
+void DomainMatchTest::wildcard_nonStarPrefix_regexMismatch() {
+    // Same path, domain does not match pattern.
+    QVERIFY(!matchesWildcardPattern(QStringLiteral("www.*.com"), QStringLiteral("ftp.google.com")));
 }
 
 QTEST_MAIN(DomainMatchTest)

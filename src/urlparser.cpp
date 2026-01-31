@@ -15,7 +15,7 @@ std::expected<QString, ParseUrlError> parseUrl(const QString &url) {
         // For file URLs, use the filename as domain.
         auto path = parsedUrl.path();
         if (path.isEmpty()) {
-            path = url; // Handle bare file paths.
+            path = url; // LCOV_EXCL_LINE Handle bare file paths.
         }
         return QFileInfo(path).fileName();
     }

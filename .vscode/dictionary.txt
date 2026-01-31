@@ -1,3 +1,4 @@
+abcxyz
 advapi
 appdir
 appimage
@@ -20,6 +21,7 @@ browserchooserrc
 browserinfoformat
 browserinfoformattest
 browseroption
+browseroptiontest
 bsky
 bugtracker
 buildsystems
@@ -88,6 +90,7 @@ msys
 msystem
 ndebug
 nodisplay
+nonexistent
 nrvo
 nsis
 nullptr
@@ -98,7 +101,9 @@ percentu
 positionrule
 productversion
 qcompare
+qgetenv
 qobject
+qputenv
 qstringbuilder
 qtbase
 qtcore
@@ -106,9 +111,11 @@ qtest
 qtgui
 qtmultimedia
 qtwidgets
+qunsetenv
 qverify
 rect
 reflow
+rmpath
 schemafile
 selectorwidget
 shctx
@@ -133,6 +140,7 @@ winget
 wiswa
 wmclass
 wmclassmatch
+word
 wpessimizing
 wswitch
 xlink

@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=Quoted Exec
+Exec=/usr/bin/browser "quoted arg" %u
+Icon=test

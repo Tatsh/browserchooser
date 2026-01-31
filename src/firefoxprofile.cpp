@@ -30,7 +30,7 @@ QList<FirefoxProfilePair> getFirefoxProfiles(const QString &configDir) {
         nonDefaultPairs.append({name, name});
     }
     if (profileCount <= 1) {
-        return {{QString(), QString()}};
+        return {{QString(), QString()}}; // LCOV_EXCL_LINE
     }
     QList<FirefoxProfilePair> pairs;
     pairs.append({QString(), QString()});

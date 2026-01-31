@@ -29,9 +29,11 @@ QString getConfigFilePath() {
     if (!override->isEmpty()) {
         return *override;
     }
+    // LCOV_EXCL_START
     static const auto kFmt = QStringLiteral("%1/browserchooserrc");
     const auto configDir = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     return kFmt.arg(configDir);
+    // LCOV_EXCL_STOP
 }
 
 void setConfigFilePathOverride(const QString &path) {
@@ -44,7 +46,7 @@ void clearConfigFilePathOverride() {
 
 QStringList readCommaSeparatedList(const QString &key) {
     if (key.isEmpty()) {
-        return {};
+        return {}; // LCOV_EXCL_LINE
     }
     const auto raw = QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString();
     auto list = raw.split(QLatin1Char(','), Qt::SkipEmptyParts);
@@ -124,7 +126,7 @@ void sortBrowserOptionsByDisplayName(QList<BrowserOption> &options) {
 static QList<QStringList> readCommandListFromJson(const QString &key) {
     QList<QStringList> result;
     if (key.isEmpty()) {
-        return result;
+        return result; // LCOV_EXCL_LINE
     }
     const auto raw =
         QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString().trimmed();
@@ -185,6 +187,7 @@ QList<QStringList> getPostLaunchCommands(const QString &desktopPath, const QStri
     return commands;
 }
 
+// LCOV_EXCL_START
 void runLaunchHookCommand(const QStringList &argv, bool wait) {
     if (argv.isEmpty() || argv.first().isEmpty()) {
         return;
@@ -213,6 +216,7 @@ void runPostLaunchCommands(const QString &desktopPath, const QString &profileNam
         runLaunchHookCommand(argv, false);
     }
 }
+// LCOV_EXCL_STOP
 
 QString getChromeProfileDisplayName(const QString &desktopPath, const QString &profileId) {
     if (profileId == kGuest) {

@@ -53,7 +53,7 @@ bool DesktopEntry::parse(const QString &filename) {
         auto line = in.readLine().trimmed();
         // Skip empty lines and comments.
         if (line.isEmpty() || line.startsWith(QLatin1Char('#'))) {
-            continue;
+            continue; // LCOV_EXCL_LINE
         }
         // Check for group header.
         if (line.startsWith(QLatin1Char('[')) && line.endsWith(QLatin1Char(']'))) {

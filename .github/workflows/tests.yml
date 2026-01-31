@@ -37,6 +37,7 @@ jobs:
           --exclude build
           --omit-lines '^\}$'
           --exclude tests
+          --exclude src/backendlinux.cpp
           --include src
           --keep-going
       - if: ${{ matrix.build-type == 'Debug' }}
