@@ -233,6 +233,8 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls) {
         } else {
             args << kFmtProfileDirectory.arg(option.profileName());
         }
+    } else if (!isFirefoxExe(exePath)) {
+        args << kFmtProfileDirectory.arg(kDefault);
     }
     args << urls;
     QProcess::startDetached(exePath, args);
@@ -248,6 +250,8 @@ QString getCommandLineForDisplay(const BrowserOption &option, const QString &url
         } else {
             cmd += kFmtOneArg.arg(quoteArg(kFmtProfileDirectory.arg(option.profileName())));
         }
+    } else if (!isFirefoxExe(exePath)) {
+        cmd += kFmtOneArg.arg(quoteArg(kFmtProfileDirectory.arg(kDefault)));
     }
     if (!url.isEmpty()) {
         cmd += QLatin1Char(' ') + quoteArg(url);

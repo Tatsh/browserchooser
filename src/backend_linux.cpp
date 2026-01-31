@@ -238,6 +238,11 @@ QStringList buildArgvForOption(const BrowserOption &option, const QString &url) 
         } else {
             args.prepend(kFmtProfileDirectory.arg(option.profileName()));
         }
+    } else {
+        auto exeName = option.entry().executableName();
+        if (!exeName.contains(kFirefox, Qt::CaseInsensitive)) {
+            args.prepend(kFmtProfileDirectory.arg(kDefault));
+        }
     }
     QStringList result;
     result.append(program);
@@ -486,6 +491,11 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls) {
                 args.prepend(kArgGuest);
             } else {
                 args.prepend(kFmtProfileDirectory.arg(option.profileName()));
+            }
+        } else {
+            auto exeName = option.entry().executableName();
+            if (!exeName.contains(kFirefox, Qt::CaseInsensitive)) {
+                args.prepend(kFmtProfileDirectory.arg(kDefault));
             }
         }
         QProcess::startDetached(program, args);

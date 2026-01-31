@@ -284,6 +284,8 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls) {
         } else {
             appArgs << kFmtProfileDirectory.arg(option.profileName());
         }
+    } else if (!isFirefoxBundle(bundlePath)) {
+        appArgs << kFmtProfileDirectory.arg(kDefault);
     }
     appArgs << urls;
     if (!appArgs.isEmpty()) {
@@ -304,6 +306,8 @@ QString getCommandLineForDisplay(const BrowserOption &option, const QString &url
         } else {
             appArgs << kFmtProfileDirectory.arg(option.profileName());
         }
+    } else if (!isFirefoxBundle(bundlePath)) {
+        appArgs << kFmtProfileDirectory.arg(kDefault);
     }
     if (!url.isEmpty()) {
         appArgs << url;
