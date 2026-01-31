@@ -84,6 +84,13 @@ public:
      * @param checked True if checked.
      */
     void setRememberChoiceChecked(bool checked);
+    /** Whether the "all subdomains" radio was last used (true) or "only this domain" (false). */
+    [[nodiscard]] bool rememberDomainWildcard() const;
+    /**
+     * Sets which domain scope radio was last used.
+     * @param wildcard True for all subdomains, false for only this domain.
+     */
+    void setRememberDomainWildcard(bool wildcard);
 
 private:
     QSettings settings_;

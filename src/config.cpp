@@ -20,6 +20,8 @@ static const auto kKeyHideBrowsersWithoutProfiles =
     QStringLiteral("General/hide_browsers_without_profiles");
 static const auto kKeyRememberChoiceChecked =
     QStringLiteral("General/remember_choice_checked");
+static const auto kKeyRememberDomainWildcard =
+    QStringLiteral("General/remember_domain_wildcard");
 
 auto expandTilde(const QString &path) -> QString {
     if (path.startsWith(kTildeSlash)) {
@@ -175,5 +177,14 @@ bool AppConfig::rememberChoiceChecked() const {
 
 void AppConfig::setRememberChoiceChecked(bool checked) {
     settings_.setValue(kKeyRememberChoiceChecked, checked);
+    settings_.sync();
+}
+
+bool AppConfig::rememberDomainWildcard() const {
+    return settings_.value(kKeyRememberDomainWildcard, true).toBool();
+}
+
+void AppConfig::setRememberDomainWildcard(bool wildcard) {
+    settings_.setValue(kKeyRememberDomainWildcard, wildcard);
     settings_.sync();
 }

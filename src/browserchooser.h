@@ -63,6 +63,10 @@ public:
     [[nodiscard]] bool rememberChoiceChecked() const;
     /** Sets whether the "Do not ask again" checkbox is checked. */
     void setRememberChoiceChecked(bool checked);
+    /** Whether the "all subdomains" radio was last used. */
+    [[nodiscard]] bool rememberDomainWildcard() const;
+    /** Sets which domain scope radio was last used. */
+    void setRememberDomainWildcard(bool wildcard);
 
 private:
     void findBrowsers();

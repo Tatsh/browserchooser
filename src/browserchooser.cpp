@@ -102,6 +102,14 @@ void BrowserChooser::setRememberChoiceChecked(bool checked) {
     appConfig_.setRememberChoiceChecked(checked);
 }
 
+bool BrowserChooser::rememberDomainWildcard() const {
+    return appConfig_.rememberDomainWildcard();
+}
+
+void BrowserChooser::setRememberDomainWildcard(bool wildcard) {
+    appConfig_.setRememberDomainWildcard(wildcard);
+}
+
 void BrowserChooser::removeHiddenBrowsers() {
     auto hiddenBrowsers = appConfig_.getHiddenBrowsers();
     availableBrowsers_.removeIf([&hiddenBrowsers](const BrowserOption &option) {
