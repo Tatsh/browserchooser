@@ -63,6 +63,22 @@ auto matchesWildcardPattern(const QString &pattern, const QString &domain) {
 SavedBrowsers::SavedBrowsers() : settings_(getConfigFilePath(), QSettings::IniFormat) {
 }
 
+static std::expected<BrowserOption, GetRememberedBrowserError>
+optionFromRememberedValue(const QString &value) {
+    if (value.isEmpty()) {
+        return std::unexpected(GetRememberedBrowserError::InvalidPath);
+    }
+    auto parts = value.split(QLatin1Char('|'));
+    auto desktopPath = expandTilde(parts.first());
+    auto profileId = parts.size() > 1 ? parts.at(1) : QString();
+    auto displayName = getChromeProfileDisplayName(desktopPath, profileId);
+    BrowserOption option(desktopPath, profileId, displayName);
+    if (option.isValid()) {
+        return option;
+    }
+    return std::unexpected(GetRememberedBrowserError::InvalidPath);
+}
+
 std::expected<BrowserOption, GetRememberedBrowserError>
 SavedBrowsers::getRememberedBrowser(const QString &domain) {
     if (domain.isEmpty()) {
@@ -70,39 +86,27 @@ SavedBrowsers::getRememberedBrowser(const QString &domain) {
     }
 
     settings_.beginGroup(kRememberedBrowsers);
+    const auto keys = settings_.childKeys();
 
-    auto value = settings_.value(domain).toString();
-    if (!value.isEmpty()) {
-        settings_.endGroup();
-        auto parts = value.split(QLatin1Char('|'));
-        auto desktopPath = expandTilde(parts.first());
-        auto profileId = parts.size() > 1 ? parts.at(1) : QString();
-        auto displayName = getChromeProfileDisplayName(desktopPath, profileId);
-        BrowserOption option(desktopPath, profileId, displayName);
-        if (option.isValid()) {
-            return option;
+    // Exact match first: *.github.io must not win when a.github.io is in settings.
+    for (const auto &key : keys) {
+        if (key.compare(domain, Qt::CaseInsensitive) == 0) {
+            const auto value = settings_.value(key).toString();
+            settings_.endGroup();
+            return optionFromRememberedValue(value);
         }
-        return std::unexpected(GetRememberedBrowserError::InvalidPath);
     }
 
-    auto keys = settings_.childKeys();
+    // No exact match; try wildcard patterns.
     for (const auto &pattern : keys) {
         if (pattern.isEmpty() ||
             (!pattern.contains(QLatin1Char('*')) && !pattern.contains(QLatin1Char('?')))) {
             continue;
         }
         if (matchesWildcardPattern(pattern, domain)) {
-            value = settings_.value(pattern).toString();
+            const auto value = settings_.value(pattern).toString();
             settings_.endGroup();
-            auto parts = value.split(QLatin1Char('|'));
-            auto desktopPath = expandTilde(parts.first());
-            auto profileId = parts.size() > 1 ? parts.at(1) : QString();
-            auto displayName = getChromeProfileDisplayName(desktopPath, profileId);
-            BrowserOption option(desktopPath, profileId, displayName);
-            if (option.isValid()) {
-                return option;
-            }
-            return std::unexpected(GetRememberedBrowserError::InvalidPath);
+            return optionFromRememberedValue(value);
         }
     }
 
