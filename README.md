@@ -13,6 +13,7 @@
 [![CodeQL](https://github.com/Tatsh/browserchooser/actions/workflows/codeql.yml/badge.svg)](https://github.com/Tatsh/browserchooser/actions/workflows/codeql.yml)
 [![QA](https://github.com/Tatsh/browserchooser/actions/workflows/qa.yml/badge.svg)](https://github.com/Tatsh/browserchooser/actions/workflows/qa.yml)
 [![Tests](https://github.com/Tatsh/browserchooser/actions/workflows/tests.yml/badge.svg)](https://github.com/Tatsh/browserchooser/actions/workflows/tests.yml)
+[![Coverage Status](https://coveralls.io/repos/github/Tatsh/browserchooser/badge.svg?branch=master)](https://coveralls.io/github/Tatsh/browserchooser?branch=master)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/dependabot)
 [![GitHub Pages](https://github.com/Tatsh/browserchooser/badge/pages.yml/badge.svg)](https://Tatsh.github.io/browserchooser/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
@@ -84,21 +85,21 @@ percent-encoded).
 ```ini
 [PreLaunchCommands]
 ; Default
-usr\share\applications\google-chrome.desktop="[[\"notify-send\",\"Chrome\"]]"
+usr\share\applications\google-chrome.desktop = "[[\"notify-send\",\"Chrome\"]]"
 ; Profile 1
-usr\share\applications\google-chrome.desktop%7CProfile%201="[[\"notify-send\",\"Profile 1\"]]"
+usr\share\applications\google-chrome.desktop%7CProfile%201 = "[[\"notify-send\",\"Profile 1\"]]"
 
 [PostLaunchCommands]
-usr\share\applications\firefox.desktop="[[\"/path/to/firefox-helper.sh\"]]"
+usr\share\applications\firefox.desktop = "[[\"/path/to/firefox-helper.sh\"]]"
 ```
 
 #### Example configuration (macOS)
 
 ```ini
 [PreLaunchCommands]
-Applications\Firefox.app="[[\"osascript\",\"-e\",\"display notification \\\"Firefox\\\" with title \\\"Browser\"\"]]"
+Applications\Firefox.app = "[[\"osascript\",\"-e\",\"display notification \\\"Firefox\\\" with title \\\"Browser\"\"]]"
 ; Profile 1
-Applications\Google%20Chrome.app%7CProfile%201="[[\"osascript\",\"-e\",\"display notification \\\"Chrome\\\" with title \\\"Browser\\\"\"]]"
+Applications\Google%20Chrome.app%7CProfile%201 = "[[\"osascript\",\"-e\",\"display notification \\\"Chrome\\\" with title \\\"Browser\\\"\"]]"
 ```
 
 ## Installation
