@@ -1,5 +1,8 @@
+#include <QtCore/QCoreApplication>
+
 #include "browseroption.h"
 #include "desktopentry.h"
+#include "string_constants.h"
 
 BrowserOption::BrowserOption(const QString &desktopPath,
                              const QString &profileId,
@@ -29,15 +32,18 @@ QString BrowserOption::displayName() const {
         return e.name();
     }
     if (profileName_.isEmpty()) {
-        return e.name() + QLatin1String(" (Default)");
+        static const auto kFmtDefault =
+            QCoreApplication::translate("BrowserOption", "%1 (Default)");
+        return kFmtDefault.arg(e.name());
     }
     auto label = profileDisplayName_.isEmpty() ? profileName_ : profileDisplayName_;
-    return e.name() + QLatin1String(" (") + label + QLatin1Char(')');
+    static const auto kFmtDisplayName = QCoreApplication::translate("BrowserOption", "%1 (%2)");
+    return kFmtDisplayName.arg(e.name(), label);
 }
 
 QString BrowserOption::profileLabel() const {
     if (profileName_.isEmpty()) {
-        return QStringLiteral("Default");
+        return kDefault;
     }
     return profileDisplayName_.isEmpty() ? profileName_ : profileDisplayName_;
 }

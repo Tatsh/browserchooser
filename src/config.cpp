@@ -8,11 +8,24 @@
 
 namespace {
 
+static const auto kTildeSlash = QStringLiteral("~/");
+static const auto kTilde = QStringLiteral("~");
+static const auto kWildcardPrefix = QStringLiteral("*.");
+static const auto kRememberedBrowsers = QStringLiteral("RememberedBrowsers");
+static const auto kKeyHiddenBrowsers = QStringLiteral("General/hidden_browsers");
+static const auto kKeyIncludeNoDisplayBrowsers =
+    QStringLiteral("General/include_no_display_browsers");
+static const auto kKeyHideGuestProfiles = QStringLiteral("General/hide_guest_profiles");
+static const auto kKeyHideBrowsersWithoutProfiles =
+    QStringLiteral("General/hide_browsers_without_profiles");
+static const auto kKeyRememberChoiceChecked =
+    QStringLiteral("General/remember_choice_checked");
+
 auto expandTilde(const QString &path) -> QString {
-    if (path.startsWith(QStringLiteral("~/"))) {
+    if (path.startsWith(kTildeSlash)) {
         return QDir::homePath() + path.mid(1);
     }
-    if (path == QStringLiteral("~")) {
+    if (path == kTilde) {
         return QDir::homePath();
     }
     return path;
@@ -21,8 +34,8 @@ auto expandTilde(const QString &path) -> QString {
 auto matchesWildcardPattern(const QString &pattern, const QString &domain) {
     // Special handling for *. prefix: match any subdomain including no subdomain.
     // e.g., *.google.com matches www.google.com, mail.google.com, and google.com
-    if (pattern.startsWith(QStringLiteral("*."))) {
-        auto baseDomain = pattern.mid(2); // Remove "*.".
+    if (pattern.startsWith(kWildcardPrefix)) {
+        auto baseDomain = pattern.mid(2); // Remove "*." prefix.
 
         // Check if domain equals the base domain (no subdomain).
         if (domain.compare(baseDomain, Qt::CaseInsensitive) == 0) {
@@ -57,7 +70,7 @@ SavedBrowsers::getRememberedBrowser(const QString &domain) {
         return std::unexpected(GetRememberedBrowserError::EmptyDomain);
     }
 
-    settings_.beginGroup(QStringLiteral("RememberedBrowsers"));
+    settings_.beginGroup(kRememberedBrowsers);
 
     auto value = settings_.value(domain).toString();
     if (!value.isEmpty()) {
@@ -98,7 +111,7 @@ SavedBrowsers::getRememberedBrowser(const QString &domain) {
 }
 
 void SavedBrowsers::remember(const QString &domain, const BrowserOption &option) {
-    settings_.beginGroup(QStringLiteral("RememberedBrowsers"));
+    settings_.beginGroup(kRememberedBrowsers);
     auto value = option.desktopPath();
     if (!option.profileName().isEmpty()) {
         value += QLatin1Char('|') + option.profileName();
@@ -109,7 +122,7 @@ void SavedBrowsers::remember(const QString &domain, const BrowserOption &option)
 }
 
 void SavedBrowsers::forget(const QString &domain) {
-    settings_.beginGroup(QStringLiteral("RememberedBrowsers"));
+    settings_.beginGroup(kRememberedBrowsers);
     settings_.remove(domain);
     settings_.endGroup();
     settings_.sync();
@@ -121,21 +134,21 @@ AppConfig::AppConfig() : settings_(getConfigFilePath(), QSettings::IniFormat) {
 }
 
 QStringList AppConfig::getHiddenBrowsers() const {
-    return settings_.value(QStringLiteral("General/hidden_browsers")).toStringList();
+    return settings_.value(kKeyHiddenBrowsers).toStringList();
 }
 
 IncludeNoDisplay AppConfig::includeNoDisplayBrowsers() const {
-    return settings_.value(QStringLiteral("General/include_no_display_browsers"), false).toBool() ?
+    return settings_.value(kKeyIncludeNoDisplayBrowsers, false).toBool() ?
                IncludeNoDisplay::Yes :
                IncludeNoDisplay::No;
 }
 
 bool AppConfig::hideGuestProfiles() const {
-    return settings_.value(QStringLiteral("General/hide_guest_profiles"), true).toBool();
+    return settings_.value(kKeyHideGuestProfiles, true).toBool();
 }
 
 void AppConfig::setHideGuestProfiles(bool hide) {
-    settings_.setValue(QStringLiteral("General/hide_guest_profiles"), hide);
+    settings_.setValue(kKeyHideGuestProfiles, hide);
     settings_.sync();
 }
 
@@ -148,20 +161,19 @@ void AppConfig::setShowGuestProfiles(bool show) {
 }
 
 bool AppConfig::hideBrowsersWithoutProfiles() const {
-    return settings_.value(QStringLiteral("General/hide_browsers_without_profiles"), false)
-        .toBool();
+    return settings_.value(kKeyHideBrowsersWithoutProfiles, false).toBool();
 }
 
 void AppConfig::setHideBrowsersWithoutProfiles(bool hide) {
-    settings_.setValue(QStringLiteral("General/hide_browsers_without_profiles"), hide);
+    settings_.setValue(kKeyHideBrowsersWithoutProfiles, hide);
     settings_.sync();
 }
 
 bool AppConfig::rememberChoiceChecked() const {
-    return settings_.value(QStringLiteral("General/remember_choice_checked"), true).toBool();
+    return settings_.value(kKeyRememberChoiceChecked, true).toBool();
 }
 
 void AppConfig::setRememberChoiceChecked(bool checked) {
-    settings_.setValue(QStringLiteral("General/remember_choice_checked"), checked);
+    settings_.setValue(kKeyRememberChoiceChecked, checked);
     settings_.sync();
 }

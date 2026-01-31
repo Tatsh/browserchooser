@@ -2,9 +2,13 @@
 #include <QtCore/QSettings>
 
 #include "firefox_profile.h"
+#include "string_constants.h"
+
+static const auto kProfilePrefix = QStringLiteral("Profile");
 
 QList<FirefoxProfilePair> getFirefoxProfiles(const QString &configDir) {
-    auto path = configDir + QStringLiteral("/profiles.ini");
+    static const auto kFmtProfilesIni = QStringLiteral("%1/profiles.ini");
+    auto path = kFmtProfilesIni.arg(configDir);
     if (!QFile::exists(path)) {
         return {};
     }
@@ -12,13 +16,13 @@ QList<FirefoxProfilePair> getFirefoxProfiles(const QString &configDir) {
     int profileCount = 0;
     QList<FirefoxProfilePair> nonDefaultPairs;
     for (const auto &group : ini.childGroups()) {
-        if (!group.startsWith(QStringLiteral("Profile"))) {
+        if (!group.startsWith(kProfilePrefix)) {
             continue;
         }
         ++profileCount;
         ini.beginGroup(group);
-        auto name = ini.value(QStringLiteral("Name")).toString();
-        auto isDefault = ini.value(QStringLiteral("Default")).toInt() == 1;
+        auto name = ini.value(kName).toString();
+        auto isDefault = ini.value(kDefault).toInt() == 1;
         ini.endGroup();
         if (name.isEmpty() || isDefault) {
             continue;
