@@ -1,10 +1,12 @@
 #include <ranges>
 
+#include <QtCore/QDebug>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
+#include <QtCore/QLoggingCategory>
 #include <QtCore/QMap>
 #include <QtCore/QProcess>
 #include <QtCore/QSet>
@@ -245,33 +247,39 @@ QStringList buildArgvForOption(const BrowserOption &option, const QString &url) 
 
 } // anonymous namespace
 
-QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
+static Q_LOGGING_CATEGORY(lcBrowsers, "sh.tat.browserchooser.browsers")
+
+    QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
     const auto hideProfileBrowsers = readCommaSeparatedList(kKeyHideProfileBrowsers);
     const auto userAppDir = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
     auto appDirs = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation);
     if (!userAppDir.isEmpty()) {
         appDirs.removeAll(userAppDir);
-        appDirs.prepend(userAppDir);
+        appDirs.append(userAppDir);
+    }
+    qCDebug(lcBrowsers) << "Application dirs to scan for .desktop files, in order:";
+    for (const auto &dir : appDirs) {
+        qCDebug(lcBrowsers) << "- " << dir;
     }
     QList<BrowserOption> options;
     QSet<QString> seenKeys;
     for (const auto &appDir : appDirs) {
         QDir dir(appDir);
         if (!dir.exists()) {
+            qCDebug(lcBrowsers) << "  skip (does not exist):" << appDir;
             continue;
         }
         auto desktopFiles = dir.entryList({kDesktopGlob}, QDir::Files);
+        qCDebug(lcBrowsers) << "  app dir:" << appDir << "desktop files:" << desktopFiles.size();
         for (const auto &desktopFile : desktopFiles) {
             auto fullPath = dir.absoluteFilePath(desktopFile);
             auto entryOpt = readDesktopEntry(fullPath);
             if (!entryOpt.has_value()) {
+                qCDebug(lcBrowsers) << "    skip (parse failed):" << fullPath;
                 continue;
             }
             auto entry = entryOpt.value();
             if (entry.startupWMClass() == kBrowserchooser) {
-                continue;
-            }
-            if (includeNoDisplay == IncludeNoDisplay::No && entry.noDisplay()) {
                 continue;
             }
             auto categories = entry.categories();
@@ -280,6 +288,10 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
             auto handlesHttp =
                 mimeTypes.contains(kSchemeHandlerHttp) || mimeTypes.contains(kSchemeHandlerHttps);
             if (!isWebBrowser || !handlesHttp) {
+                continue;
+            }
+            if (includeNoDisplay == IncludeNoDisplay::No && entry.noDisplay()) {
+                qCDebug(lcBrowsers) << "    skip (NoDisplay=true):" << fullPath;
                 continue;
             }
             auto exeName = entry.executableName();
@@ -360,6 +372,8 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
                 preferNew = true;
             }
             if (preferNew) {
+                qCDebug(lcBrowsers) << "override:" << name << "replacing" << existing.desktopPath()
+                                    << "with" << opt.desktopPath();
                 it.value() = opt;
             }
         }
@@ -374,6 +388,11 @@ QList<BrowserOption> getBrowsers(IncludeNoDisplay includeNoDisplay) {
             return listContainsIdentifier(hideBrowsers, exeName) ||
                    listContainsIdentifier(hideBrowsers, canonicalPath);
         });
+    }
+    qCDebug(lcBrowsers) << "final browsers:" << options.size();
+    for (const auto &opt : options) {
+        qCDebug(lcBrowsers) << "- " << opt.displayName() << "desktopPath:" << opt.desktopPath()
+                            << "profile:" << opt.profileName();
     }
     return options;
 }

@@ -13,6 +13,8 @@ static const auto kStartupWMClass = QStringLiteral("StartupWMClass");
 static const auto kCategories = QStringLiteral("Categories");
 static const auto kMimeType = QStringLiteral("MimeType");
 static const auto kNoDisplay = QStringLiteral("NoDisplay");
+static const auto kXGnomeNoDisplay = QStringLiteral("X-GNOME-NoDisplay");
+static const auto kHidden = QStringLiteral("Hidden");
 static const auto kTrue = QStringLiteral("true");
 static const auto kComment = QStringLiteral("Comment");
 static const auto kSuffixExe = QStringLiteral(".exe");
@@ -55,20 +57,22 @@ bool DesktopEntry::parse(const QString &filename) {
         }
         // Check for group header.
         if (line.startsWith(QLatin1Char('[')) && line.endsWith(QLatin1Char(']'))) {
-            currentGroup = line.mid(1, line.length() - 2);
-            inDesktopEntry = (currentGroup == kDesktopEntry);
+            currentGroup = line.mid(1, line.length() - 2).trimmed();
+            inDesktopEntry = (currentGroup.compare(kDesktopEntry, Qt::CaseInsensitive) == 0);
             continue;
         }
-        // Only parse Desktop Entry group.
-        if (!inDesktopEntry) {
-            continue;
-        }
-        // Parse key=value.
+        // Parse key=value (only in [Desktop Entry], or when key is a main-entry key like NoDisplay
+        // that some files put after [Desktop Action] sections).
         auto equalsPos = line.indexOf(QLatin1Char('='));
         if (equalsPos > 0) {
             auto key = line.left(equalsPos).trimmed();
             auto value = line.mid(equalsPos + 1);
-            entries_[key] = value;
+            const bool isMainEntryKey = key.compare(kNoDisplay, Qt::CaseInsensitive) == 0 ||
+                                        key.compare(kXGnomeNoDisplay, Qt::CaseInsensitive) == 0 ||
+                                        key.compare(kHidden, Qt::CaseInsensitive) == 0;
+            if (inDesktopEntry || isMainEntryKey) {
+                entries_[key] = value;
+            }
         }
     }
     file.close();
@@ -78,7 +82,22 @@ bool DesktopEntry::parse(const QString &filename) {
     startupWMClass_ = getValue(kStartupWMClass);
     categories_ = getListValue(kCategories);
     mimeTypes_ = getListValue(kMimeType);
-    noDisplay_ = getValue(kNoDisplay).toLower() == kTrue;
+    auto noDisplayVal = getValue(kNoDisplay);
+    if (noDisplayVal.isEmpty()) {
+        noDisplayVal = getValue(kXGnomeNoDisplay);
+    }
+    if (noDisplayVal.isEmpty()) {
+        noDisplayVal = getValue(kHidden);
+    }
+    if (noDisplayVal.isEmpty()) {
+        for (auto it = entries_.keyBegin(); it != entries_.keyEnd(); ++it) {
+            if (it->compare(kNoDisplay, Qt::CaseInsensitive) == 0) {
+                noDisplayVal = entries_.value(*it);
+                break;
+            }
+        }
+    }
+    noDisplay_ = noDisplayVal.trimmed().toLower() == kTrue;
     valid_ = !getValue(kName).isEmpty() && !exec_.isEmpty();
     return valid_;
 }

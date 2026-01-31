@@ -88,7 +88,8 @@ SavedBrowsers::getRememberedBrowser(const QString &domain) {
 
     auto keys = settings_.childKeys();
     for (const auto &pattern : keys) {
-        if (!pattern.contains(QLatin1Char('*')) && !pattern.contains(QLatin1Char('?'))) {
+        if (pattern.isEmpty() ||
+            (!pattern.contains(QLatin1Char('*')) && !pattern.contains(QLatin1Char('?')))) {
             continue;
         }
         if (matchesWildcardPattern(pattern, domain)) {
@@ -111,6 +112,9 @@ SavedBrowsers::getRememberedBrowser(const QString &domain) {
 }
 
 void SavedBrowsers::remember(const QString &domain, const BrowserOption &option) {
+    if (domain.isEmpty()) {
+        return;
+    }
     settings_.beginGroup(kRememberedBrowsers);
     auto value = option.desktopPath();
     if (!option.profileName().isEmpty()) {
@@ -122,6 +126,9 @@ void SavedBrowsers::remember(const QString &domain, const BrowserOption &option)
 }
 
 void SavedBrowsers::forget(const QString &domain) {
+    if (domain.isEmpty()) {
+        return;
+    }
     settings_.beginGroup(kRememberedBrowsers);
     settings_.remove(domain);
     settings_.endGroup();

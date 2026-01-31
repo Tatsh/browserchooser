@@ -163,31 +163,31 @@ elseif(WIN32)
       $<TARGET_FILE_DIR:browserchooser>)
   endif()
 else()
-# Linux, MSYS package, macOS package without creating a bundle.
-install(TARGETS browserchooser RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_PROJECT_NAME}.desktop.in"
-               "${CMAKE_CURRENT_BINARY_DIR}/sh.tat.${CMAKE_PROJECT_NAME}.desktop" @ONLY)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/sh.tat.${CMAKE_PROJECT_NAME}.desktop"
-        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/applications")
-foreach(
-  size
-  16
-  32
-  48
-  64
-  96
-  128
-  256
-  512)
-  install(
-    FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/icon_${size}.png"
-    DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${size}x${size}/apps"
-    RENAME sh.tat.${CMAKE_PROJECT_NAME}.png)
-endforeach()
-install(FILES ../README.md TYPE DOC)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sh.tat.${CMAKE_PROJECT_NAME}.metainfo.xml
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo)
-install(FILES ${CMAKE_SOURCE_DIR}/man/browserchooser.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+  # Linux, MSYS package, macOS package without creating a bundle.
+  install(TARGETS browserchooser RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_PROJECT_NAME}.desktop.in"
+                 "${CMAKE_CURRENT_BINARY_DIR}/sh.tat.${CMAKE_PROJECT_NAME}.desktop" @ONLY)
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/sh.tat.${CMAKE_PROJECT_NAME}.desktop"
+          DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/applications")
+  foreach(
+    size
+    16
+    32
+    48
+    64
+    96
+    128
+    256
+    512)
+    install(
+      FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/icon_${size}.png"
+      DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${size}x${size}/apps"
+      RENAME sh.tat.${CMAKE_PROJECT_NAME}.png)
+  endforeach()
+  install(FILES ../README.md TYPE DOC)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sh.tat.${CMAKE_PROJECT_NAME}.metainfo.xml
+          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo)
+  install(FILES ${CMAKE_SOURCE_DIR}/man/browserchooser.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 endif()
 
 # CPack configuration

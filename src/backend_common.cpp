@@ -20,6 +20,9 @@ QString getConfigFilePath() {
 }
 
 QStringList readCommaSeparatedList(const QString &key) {
+    if (key.isEmpty()) {
+        return {};
+    }
     const auto raw = QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString();
     auto list = raw.split(QLatin1Char(','), Qt::SkipEmptyParts);
     for (auto &s : list) {
@@ -92,6 +95,9 @@ void sortBrowserOptionsByDisplayName(QList<BrowserOption> &options) {
 
 static QList<QStringList> readCommandListFromJson(const QString &key) {
     QList<QStringList> result;
+    if (key.isEmpty()) {
+        return result;
+    }
     const auto raw =
         QSettings(getConfigFilePath(), QSettings::IniFormat).value(key).toString().trimmed();
     if (raw.isEmpty()) {
@@ -128,6 +134,9 @@ static QString launchCommandsKey(const QString &desktopPath, const QString &prof
 }
 
 QList<QStringList> getPreLaunchCommands(const QString &desktopPath, const QString &profileName) {
+    if (desktopPath.isEmpty()) {
+        return {};
+    }
     static const auto kFmt = QStringLiteral("PreLaunchCommands/%1");
     auto commands = readCommandListFromJson(kFmt.arg(launchCommandsKey(desktopPath, profileName)));
     if (commands.isEmpty() && !profileName.isEmpty()) {
@@ -137,6 +146,9 @@ QList<QStringList> getPreLaunchCommands(const QString &desktopPath, const QStrin
 }
 
 QList<QStringList> getPostLaunchCommands(const QString &desktopPath, const QString &profileName) {
+    if (desktopPath.isEmpty()) {
+        return {};
+    }
     static const auto kFmt = QStringLiteral("PostLaunchCommands/%1");
     auto commands = readCommandListFromJson(kFmt.arg(launchCommandsKey(desktopPath, profileName)));
     if (commands.isEmpty() && !profileName.isEmpty()) {
