@@ -1,0 +1,200 @@
+---
+jobs:
+  build-macos:
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install deps
+        run: brew install extra-cmake-modules qt
+      - run: |
+          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
+            --install-prefix ${{github.workspace}}/build/prefix
+          cmake --build build --config ${{matrix.build-type}} --verbose
+          cmake --install ${{github.workspace}}/build --config ${{matrix.build-type}} --verbose
+      - name: Ad-hoc codesign
+        run: codesign --force --deep --sign - "${{github.workspace}}/build/prefix/Browser Chooser.app"
+      - name: Package
+        run: >-
+          cpack -C ${{matrix.build-type}}
+          --config ${{github.workspace}}/build/CPackConfig.cmake --verbose
+      - name: 'Upload Artifacts'
+        uses: 'actions/upload-artifact@v6'
+        with:
+          if-no-files-found: error
+          name: browserchooser-${{ matrix.build-type }}-${{ matrix.os }}
+          path: |
+            ${{github.workspace}}/browserchooser-*.zip
+            ${{github.workspace}}/browserchooser-*.dmg
+      - name: Attest
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            ${{github.workspace}}/browserchooser-*.zip
+            ${{github.workspace}}/browserchooser-*.dmg
+      - if: ${{ github.ref_type == 'tag' }}
+        name: Upload package
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            ${{github.workspace}}/browserchooser-*.zip
+            ${{github.workspace}}/browserchooser-*.dmg
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [Debug, Release]
+        os: [macos-latest, macos-15-intel]
+  build-msys:
+    runs-on: windows-latest
+    steps:
+      - id: fixed_workspace
+        name: Fix path
+        run: >-
+          echo out=$("${{github.workspace}}" -Replace "\\","/") | Out-File
+          -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - uses: msys2/setup-msys2@v2
+        with:
+          install: >-
+            make
+          msystem: ${{matrix.sys.name}}
+          pacboy: >-
+            cmake:p
+            extra-cmake-modules:p
+            ninja:p
+            nsis:p
+            qt6-base:p
+            qt6-tools:p
+            toolchain:p
+            zlib:p
+          update: true
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Configure
+        run: >-
+          cmake -G Ninja -B ${{steps.fixed_workspace.outputs.out}}/build
+          --install-prefix ${{steps.fixed_workspace.outputs.out}}/build/prefix
+          -DCMAKE_BUILD_TYPE=${{matrix.build-type}}
+          -DFHS=OFF
+        shell: msys2 {0}
+      - name: Build
+        run: cmake --build ${{steps.fixed_workspace.outputs.out}}/build --verbose
+        shell: msys2 {0}
+      - name: Install
+        run: >-
+          cmake --install ${{steps.fixed_workspace.outputs.out}}/build
+          --config ${{matrix.build-type}} --verbose
+        shell: msys2 {0}
+      - name: Package
+        run: >-
+          cpack -C ${{matrix.build-type}}
+          --config ${{steps.fixed_workspace.outputs.out}}/build/CPackConfig.cmake --verbose
+        shell: msys2 {0}
+      - name: 'Upload Artifacts'
+        uses: 'actions/upload-artifact@v6'
+        with:
+          if-no-files-found: error
+          name: browserchooser-${{ matrix.build-type }}-${{ matrix.sys.name }}
+          path: |
+            ${{github.workspace}}/browserchooser-*.exe
+            ${{github.workspace}}/browserchooser-*.zip
+      - name: Attest
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            ${{github.workspace}}/browserchooser-*.exe
+            ${{github.workspace}}/browserchooser-*.zip
+      - if: ${{ github.ref_type == 'tag' && matrix.sys.name == 'ucrt64' }}
+        name: Upload package
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            ${{github.workspace}}/browserchooser-*.exe
+            ${{github.workspace}}/browserchooser-*.zip
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [Debug, Release]
+        sys:
+          - env: x86_64
+            name: mingw64
+          - env: ucrt-x86_64
+            name: ucrt64
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y extra-cmake-modules lcov tree
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          modules: qtmultimedia
+      - name: Configure
+        run: >-
+          cmake -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -B ${{github.workspace}}/build
+          --install-prefix ${{github.workspace}}/build/AppDir/usr
+          -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+          -DFHS=ON
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --verbose --config ${{matrix.build-type}}
+      - name: Install
+        run: cmake --install ${{github.workspace}}/build --config ${{matrix.build-type}} --verbose
+      - name: Package
+        run: >-
+          cpack -C ${{matrix.build-type}}
+          --config ${{github.workspace}}/build/CPackConfig.cmake --verbose
+      - name: Create AppImage
+        run: |
+          wget 'https://github.com/TheAssassin/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage'
+          chmod +x linuxdeploy-x86_64.AppImage
+          ./linuxdeploy-x86_64.AppImage --appdir ${{github.workspace}}/build/AppDir --output appimage
+          rm ./linuxdeploy-x86_64.AppImage
+          mv -v ${{github.workspace}}/*.AppImage ${{github.workspace}}/browserchooser-${{matrix.build-type}}-x86_64.AppImage
+      - if: ${{ github.ref_type == 'tag' && matrix.build-type == 'Release' }}
+        name: Rename with tag
+        run: mv -v ${{github.workspace}}/browserchooser-*.AppImage ${{github.workspace}}/browserchooser-${{github.ref_name}}-x86_64.AppImage
+      - name: 'Upload Artifacts'
+        uses: 'actions/upload-artifact@v6'
+        with:
+          if-no-files-found: error
+          name: browserchooser-${{ matrix.build-type }}-Linux
+          path: |
+            ${{github.workspace}}/browserchooser-*.AppImage
+            ${{github.workspace}}/browserchooser-*.zip
+      - name: Attest
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            ${{github.workspace}}/browserchooser-*.AppImage
+            ${{github.workspace}}/browserchooser-*.zip
+      - if: ${{ github.ref_type == 'tag' && matrix.build-type == 'Release' }}
+        name: Upload package
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            ${{github.workspace}}/build/browserchooser-*.AppImage
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [Debug, Release]
+name: C/C++ CI
+'on':
+  push:
+    branches: [master]
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches: [master]
+permissions:
+  attestations: write
+  contents: write
+  id-token: write

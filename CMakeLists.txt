@@ -1,10 +1,16 @@
 cmake_minimum_required(VERSION 3.16)
-project(browserchooser VERSION 0.0.1 LANGUAGES CXX DESCRIPTION "A simple browser chooser." HOMEPAGE_URL "https://github.com/Tatsh/browserchooser")
+project(
+  browserchooser
+  VERSION 0.0.1
+  LANGUAGES CXX
+  DESCRIPTION "A simple browser chooser."
+  HOMEPAGE_URL "https://github.com/Tatsh/browserchooser")
+
+include(GNUInstallDirs)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -56,3 +62,53 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 add_subdirectory(src)
+
+# Testing
+option(BUILD_TESTS "Build tests." OFF)
+option(COVERAGE "Enable code coverage (GCC/Clang only)." OFF)
+if(COVERAGE)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(--coverage)
+    add_link_options(--coverage)
+  else()
+    message(WARNING "COVERAGE is only supported with GCC or Clang.")
+  endif()
+endif()
+if(BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
+
+set(CPACK_PACKAGE_VENDOR "Tatsh")
+set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE.txt)
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${PROJECT_DESCRIPTION})
+set(__cpack_system_name ${CMAKE_SYSTEM_NAME})
+if(__cpack_system_name MATCHES "Windows")
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(__cpack_system_name win64)
+  else()
+    set(__cpack_system_name win32)
+  endif()
+elseif(APPLE)
+  if(CMAKE_APPLE_SILICON_PROCESSOR)
+    set(__cpack_system_name Darwin-arm64)
+  else()
+    set(__cpack_system_name Darwin-x86_64)
+  endif()
+endif()
+set(CPACK_THREADS 0)
+set(CPACK_PACKAGE_FILE_NAME
+    ${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${__cpack_system_name})
+
+if(WIN32)
+  set(CPACK_GENERATOR NSIS ZIP)
+elseif(APPLE)
+  if(FHS OR NON_PORTABLE_MACOS_BUNDLE)
+    set(CPACK_GENERATOR ZIP)
+  else()
+    set(CPACK_GENERATOR DragNDrop ZIP)
+  endif()
+else()
+  set(CPACK_GENERATOR ZIP)
+endif()
+include(CPack)

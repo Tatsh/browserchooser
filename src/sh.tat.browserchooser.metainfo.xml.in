@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>sh.tat.@CMAKE_PROJECT_NAME@</id>
+  <name>@DISPLAY_NAME@</name>
+  <summary>Pick which browser and profile to use when opening a link.</summary>
+  <description>
+    <p>
+      Set @DISPLAY_NAME@ as your default browser. When you click URLs in
+      non-browsers, it shows a dialogue so you can choose the right browser or
+      profile, and optionally remember your choice per domain.
+    </p>
+    <p>Use cases:</p>
+    <ul>
+      <li>Work vs personal — open work links in one profile and personal in another</li>
+      <li>Security and isolation — use a separate browser or profile for banking or untrusted sites</li>
+      <li>Multiple accounts — switch between Chrome/Firefox profiles when opening a link</li>
+    </ul>
+    <p>
+      Supports Linux (XDG desktop entries), macOS (.app bundles), and Windows.
+      Discovers Chrome, Firefox, Edge, Brave, Chromium, Opera, Safari (macOS), and
+      other common browsers with profile support.
+    </p>
+  </description>
+  <project_license>MIT</project_license>
+  <developer_name>Tatsh</developer_name>
+  <url type="homepage">@PROJECT_HOMEPAGE_URL@</url>
+  <url type="bugtracker">@PROJECT_HOMEPAGE_URL@/issues</url>
+  <launchable type="desktop-id">sh.tat.@CMAKE_PROJECT_NAME@.desktop</launchable>
+  <categories>
+    <category>Network</category>
+    <category>WebBrowser</category>
+  </categories>
+  <releases>
+    <release version="@PROJECT_VERSION@" />
+  </releases>
+</component>
