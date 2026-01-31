@@ -4,3 +4,7 @@
 ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
 IntFmt $0 "0x%08X" $0
 WriteRegDWORD SHCTX "${ARP}" "EstimatedSize" "$0"
+; Register as a browser option (http/https handler) so Browser Chooser appears in Settings > Default apps > Web browser
+WriteRegStr HKCU "Software\Classes\Applications\browserchooser.exe\shell\open\command" "" '"$INSTDIR\bin\browserchooser.exe" "%1"'
+WriteRegStr HKCU "Software\Classes\http\OpenWithProgids" "Applications.browserchooser.exe" ""
+WriteRegStr HKCU "Software\Classes\https\OpenWithProgids" "Applications.browserchooser.exe" ""

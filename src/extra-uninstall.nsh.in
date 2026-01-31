@@ -1,0 +1,4 @@
+; Unregister browser option (http/https handler)
+DeleteRegValue HKCU "Software\Classes\http\OpenWithProgids" "Applications.browserchooser.exe"
+DeleteRegValue HKCU "Software\Classes\https\OpenWithProgids" "Applications.browserchooser.exe"
+DeleteRegKey HKCU "Software\Classes\Applications\browserchooser.exe"

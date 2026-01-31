@@ -63,6 +63,8 @@ if(WIN32)
 endif()
 
 if(APPLE)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+                 ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
   # Temporary: Generate icns file from PNG icons until a proper macOS icon is made.
   set(ICONSET_DIR "${CMAKE_CURRENT_BINARY_DIR}/browserchooser.iconset")
   set(ICNS_FILE "${CMAKE_CURRENT_BINARY_DIR}/browserchooser.icns")
@@ -106,6 +108,7 @@ if(APPLE)
                MACOSX_BUNDLE TRUE
                MACOSX_BUNDLE_BUNDLE_NAME ${DISPLAY_NAME}
                MACOSX_BUNDLE_ICON_FILE "browserchooser.icns"
+               MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_BINARY_DIR}/Info.plist
                MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
                MACOSX_BUNDLE_GUI_IDENTIFIER "sh.tat.${CMAKE_PROJECT_NAME}"
                MACOSX_BUNDLE_COPYRIGHT "Copyright (c) ${YEAR} ${DISPLAY_NAME} authors."
@@ -199,9 +202,14 @@ endif()
 # CPack configuration
 if(WIN32)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/extra.nsh.in ${CMAKE_BINARY_DIR}/extra.nsh @ONLY)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/extra-uninstall.nsh.in
+                 ${CMAKE_BINARY_DIR}/extra-uninstall.nsh @ONLY)
   string(REPLACE "/" "\\\\" CMAKE_BINARY_DIR_ESCAPED ${CMAKE_BINARY_DIR})
   set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
       "  !include \\\"${CMAKE_BINARY_DIR_ESCAPED}\\\\extra.nsh\\\""
+      PARENT_SCOPE)
+  set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS
+      "  !include \\\"${CMAKE_BINARY_DIR_ESCAPED}\\\\extra-uninstall.nsh\\\""
       PARENT_SCOPE)
   set(CPACK_NSIS_DEFINES
       "RequestExecutionLevel user
