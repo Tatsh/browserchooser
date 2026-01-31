@@ -28,7 +28,7 @@
 #include "browserinfoformat.h"
 #include "desktopentry.h"
 #include "selectorwidget.h"
-#include "string_constants.h"
+#include "stringconstants.h"
 
 namespace {
 

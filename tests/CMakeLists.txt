@@ -1,19 +1,11 @@
 find_package(Qt6 REQUIRED COMPONENTS Test)
 
 set(BROWSERCHOOSER_TEST_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testdata")
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  set(BROWSERCHOOSER_BACKEND_PLATFORM_SRC ${CMAKE_SOURCE_DIR}/src/backend_linux.cpp)
-elseif(WIN32)
-  set(BROWSERCHOOSER_BACKEND_PLATFORM_SRC ${CMAKE_SOURCE_DIR}/src/backend_win.cpp)
-elseif(APPLE)
-  set(BROWSERCHOOSER_BACKEND_PLATFORM_SRC ${CMAKE_SOURCE_DIR}/src/backend_mac.mm)
-else()
-  set(BROWSERCHOOSER_BACKEND_PLATFORM_SRC "")
-endif()
+set(BROWSERCHOOSER_BACKEND_PLATFORM_SRC ${CMAKE_SOURCE_DIR}/src/backendlinux.cpp)
 set(BROWSERCHOOSER_TEST_DATA_DIR_QUOTED "\"${BROWSERCHOOSER_TEST_DATA_DIR}\"")
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/testdata_dir.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/testdata_dir.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/testdatadir.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/testdatadir.h
   @ONLY)
 set(BROWSERCHOOSER_TEST_DATA_DIR "${BROWSERCHOOSER_TEST_DATA_DIR}" PARENT_SCOPE)
 set(BROWSERCHOOSER_TEST_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR})
@@ -58,30 +50,30 @@ browserchooser_add_test(desktopentrytest
   "")
 set_tests_properties(desktopentrytest PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-# chrome_profiletest (needs testdata)
-browserchooser_add_test(chrome_profiletest
-  ${CMAKE_CURRENT_SOURCE_DIR}/chrome_profiletest.cpp
-  ${BROWSERCHOOSER_SRC_DIR}/chrome_profile.cpp
+# chromeprofiletest (needs testdata)
+browserchooser_add_test(chromeprofiletest
+  ${CMAKE_CURRENT_SOURCE_DIR}/chromeprofiletest.cpp
+  ${BROWSERCHOOSER_SRC_DIR}/chromeprofile.cpp
   "")
-set_tests_properties(chrome_profiletest PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set_tests_properties(chromeprofiletest PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-# firefox_profiletest (needs testdata)
-browserchooser_add_test(firefox_profiletest
-  ${CMAKE_CURRENT_SOURCE_DIR}/firefox_profiletest.cpp
-  ${BROWSERCHOOSER_SRC_DIR}/firefox_profile.cpp
+# firefoxprofiletest (needs testdata)
+browserchooser_add_test(firefoxprofiletest
+  ${CMAKE_CURRENT_SOURCE_DIR}/firefoxprofiletest.cpp
+  ${BROWSERCHOOSER_SRC_DIR}/firefoxprofile.cpp
   "")
-set_tests_properties(firefox_profiletest PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set_tests_properties(firefoxprofiletest PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 # configtest (needs temp config path override; SavedBrowsers uses getConfigFilePath, getChromeProfileDisplayName)
 browserchooser_add_test(configtest
   ${CMAKE_CURRENT_SOURCE_DIR}/configtest.cpp
-  "${BROWSERCHOOSER_SRC_DIR}/config.cpp;${BROWSERCHOOSER_SRC_DIR}/domainmatch.cpp;${BROWSERCHOOSER_SRC_DIR}/backend_common.cpp;${BROWSERCHOOSER_BACKEND_PLATFORM_SRC};${BROWSERCHOOSER_SRC_DIR}/browseroption.cpp;${BROWSERCHOOSER_SRC_DIR}/desktopentry.cpp;${BROWSERCHOOSER_SRC_DIR}/chrome_profile.cpp;${BROWSERCHOOSER_SRC_DIR}/firefox_profile.cpp"
+  "${BROWSERCHOOSER_SRC_DIR}/config.cpp;${BROWSERCHOOSER_SRC_DIR}/domainmatch.cpp;${BROWSERCHOOSER_SRC_DIR}/backendcommon.cpp;${BROWSERCHOOSER_BACKEND_PLATFORM_SRC};${BROWSERCHOOSER_SRC_DIR}/browseroption.cpp;${BROWSERCHOOSER_SRC_DIR}/desktopentry.cpp;${BROWSERCHOOSER_SRC_DIR}/chromeprofile.cpp;${BROWSERCHOOSER_SRC_DIR}/firefoxprofile.cpp"
   "")
 set_tests_properties(configtest PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-# backend_commontest (listContainsIdentifier, isBrowserHidden, readCommaSeparatedList with temp config)
-browserchooser_add_test(backend_commontest
-  ${CMAKE_CURRENT_SOURCE_DIR}/backend_commontest.cpp
-  "${BROWSERCHOOSER_SRC_DIR}/backend_common.cpp;${BROWSERCHOOSER_BACKEND_PLATFORM_SRC};${BROWSERCHOOSER_SRC_DIR}/chrome_profile.cpp;${BROWSERCHOOSER_SRC_DIR}/firefox_profile.cpp;${BROWSERCHOOSER_SRC_DIR}/browseroption.cpp;${BROWSERCHOOSER_SRC_DIR}/desktopentry.cpp"
+# backendcommontest (listContainsIdentifier, isBrowserHidden, readCommaSeparatedList with temp config)
+browserchooser_add_test(backendcommontest
+  ${CMAKE_CURRENT_SOURCE_DIR}/backendcommontest.cpp
+  "${BROWSERCHOOSER_SRC_DIR}/backendcommon.cpp;${BROWSERCHOOSER_BACKEND_PLATFORM_SRC};${BROWSERCHOOSER_SRC_DIR}/chromeprofile.cpp;${BROWSERCHOOSER_SRC_DIR}/firefoxprofile.cpp;${BROWSERCHOOSER_SRC_DIR}/browseroption.cpp;${BROWSERCHOOSER_SRC_DIR}/desktopentry.cpp"
   "")
-set_tests_properties(backend_commontest PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set_tests_properties(backendcommontest PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

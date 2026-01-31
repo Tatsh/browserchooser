@@ -11,8 +11,8 @@
 #include "backend.h"
 #include "browseroption.h"
 #include "desktopentry.h"
-#include "firefox_profile.h"
-#include "string_constants.h"
+#include "firefoxprofile.h"
+#include "stringconstants.h"
 
 namespace {
 

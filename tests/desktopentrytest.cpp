@@ -1,7 +1,7 @@
 #include <QtTest/QTest>
 
 #include "desktopentry.h"
-#include "testdata_dir.h"
+#include "testdatadir.h"
 
 class DesktopEntryTest : public QObject {
     Q_OBJECT

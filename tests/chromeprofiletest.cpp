@@ -1,7 +1,7 @@
 #include <QtTest/QTest>
 
-#include "chrome_profile.h"
-#include "testdata_dir.h"
+#include "chromeprofile.h"
+#include "testdatadir.h"
 
 class ChromeProfileTest : public QObject {
     Q_OBJECT
@@ -43,4 +43,4 @@ void ChromeProfileTest::getDisplayName_missingFile_returnsEmpty() {
 }
 
 QTEST_MAIN(ChromeProfileTest)
-#include "chrome_profiletest.moc"
+#include "chromeprofiletest.moc"

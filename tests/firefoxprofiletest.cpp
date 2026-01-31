@@ -1,7 +1,7 @@
 #include <QtTest/QTest>
 
-#include "firefox_profile.h"
-#include "testdata_dir.h"
+#include "firefoxprofile.h"
+#include "testdatadir.h"
 
 class FirefoxProfileTest : public QObject {
     Q_OBJECT
@@ -33,4 +33,4 @@ void FirefoxProfileTest::getFirefoxProfiles_missingFile_returnsEmpty() {
 }
 
 QTEST_MAIN(FirefoxProfileTest)
-#include "firefox_profiletest.moc"
+#include "firefoxprofiletest.moc"

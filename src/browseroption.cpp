@@ -2,7 +2,7 @@
 
 #include "browseroption.h"
 #include "desktopentry.h"
-#include "string_constants.h"
+#include "stringconstants.h"
 
 BrowserOption::BrowserOption(const QString &desktopPath,
                              const QString &profileId,

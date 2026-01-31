@@ -11,9 +11,9 @@
 #include <QtCore/QStandardPaths>
 
 #include "backend.h"
-#include "chrome_profile.h"
+#include "chromeprofile.h"
 #include "desktopentry.h"
-#include "string_constants.h"
+#include "stringconstants.h"
 
 namespace {
 

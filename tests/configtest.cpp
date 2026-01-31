@@ -6,7 +6,7 @@
 
 #include "backend.h"
 #include "config.h"
-#include "testdata_dir.h"
+#include "testdatadir.h"
 
 class ConfigTest : public QObject {
     Q_OBJECT

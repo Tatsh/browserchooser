@@ -1,8 +1,8 @@
 #include <QtCore/QFile>
 #include <QtCore/QSettings>
 
-#include "firefox_profile.h"
-#include "string_constants.h"
+#include "firefoxprofile.h"
+#include "stringconstants.h"
 
 static const auto kProfilePrefix = QStringLiteral("Profile");
 

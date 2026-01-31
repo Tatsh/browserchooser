@@ -4,7 +4,7 @@
 #include <QtCore/QTextStream>
 
 #include "desktopentry.h"
-#include "string_constants.h"
+#include "stringconstants.h"
 
 static const auto kDesktopEntry = QStringLiteral("Desktop Entry");
 static const auto kExec = QStringLiteral("Exec");

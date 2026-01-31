@@ -7,6 +7,11 @@ automoc
 autorcc
 autosort
 autouic
+backendcommon
+backendcommontest
+backendlinux
+backendmac
+backendwin
 basedomain
 basedomaintest
 bindir
@@ -19,10 +24,11 @@ bsky
 bugtracker
 buildsystems
 bytearray
+chromeprofile
+chromeprofiletest
 codesign
 color
 commitizen
-commontest
 configtest
 coveragerc
 coverallsapp
@@ -35,8 +41,8 @@ dbuild
 dcmake
 dcoverage
 desktopentry
+desktopentrymac
 desktopentrytest
-dfhs
 docstrings
 domainmatch
 domainmatchtest
@@ -50,6 +56,8 @@ fileflagsmask
 fileos
 filesubtype
 fileversion
+firefoxprofile
+firefoxprofiletest
 flathub
 foxundermoon
 fsafe
@@ -89,7 +97,6 @@ pacboy
 percentu
 positionrule
 productversion
-profiletest
 qcompare
 qobject
 qstringbuilder
@@ -114,6 +121,7 @@ tagfile
 tagfiles
 tatsh
 testdata
+testdatadir
 ucrt
 udvare
 urlparser

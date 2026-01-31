@@ -2,8 +2,8 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 
-#include "chrome_profile.h"
-#include "string_constants.h"
+#include "chromeprofile.h"
+#include "stringconstants.h"
 
 static const auto kFmtProfilePath = QStringLiteral("%1/%2/%3");
 static const auto kJsonProfile = QStringLiteral("profile");

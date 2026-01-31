@@ -1,12 +1,12 @@
 set(DISPLAY_NAME "Browser Chooser")
-set(BACKEND_SOURCES backend_common.cpp)
+set(BACKEND_SOURCES backendcommon.cpp)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  list(APPEND BACKEND_SOURCES backend_linux.cpp)
+  list(APPEND BACKEND_SOURCES backendlinux.cpp)
 elseif(WIN32)
-  list(APPEND BACKEND_SOURCES backend_win.cpp)
+  list(APPEND BACKEND_SOURCES backendwin.cpp)
 elseif(APPLE)
-  list(APPEND BACKEND_SOURCES backend_mac.mm desktopentry_mac.mm)
+  list(APPEND BACKEND_SOURCES backendmac.mm desktopentrymac.mm)
 else()
   message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}.")
 endif()
@@ -23,8 +23,8 @@ add_executable(
   browserinfoformat.h
   browseroption.cpp
   browseroption.h
-  chrome_profile.cpp
-  chrome_profile.h
+  chromeprofile.cpp
+  chromeprofile.h
   config.cpp
   config.h
   desktopentry.cpp
@@ -33,8 +33,8 @@ add_executable(
   desktopentry.h
   draggablepopup.cpp
   draggablepopup.h
-  firefox_profile.cpp
-  firefox_profile.h
+  firefoxprofile.cpp
+  firefoxprofile.h
   main.cpp
   selectorwidget.cpp
   selectorwidget.h

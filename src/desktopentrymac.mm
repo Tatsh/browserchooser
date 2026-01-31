@@ -4,7 +4,7 @@
 #import <Foundation/Foundation.h>
 
 #include "desktopentry.h"
-#include "string_constants.h"
+#include "stringconstants.h"
 
 static const auto kFmtPlistPath = QStringLiteral("%1/Contents/Info.plist");
 static const auto kFmtMacOSPath = QStringLiteral("%1/Contents/MacOS/%2");

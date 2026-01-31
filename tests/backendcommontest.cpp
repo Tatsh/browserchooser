@@ -7,7 +7,7 @@
 #include "backend.h"
 #include "browseroption.h"
 #include "desktopentry.h"
-#include "testdata_dir.h"
+#include "testdatadir.h"
 
 class BackendCommonTest : public QObject {
     Q_OBJECT
@@ -98,4 +98,4 @@ void BackendCommonTest::readCommaSeparatedList_withTempConfig() {
 }
 
 QTEST_MAIN(BackendCommonTest)
-#include "backend_commontest.moc"
+#include "backendcommontest.moc"
