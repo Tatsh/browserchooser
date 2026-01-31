@@ -11,11 +11,13 @@
 
 #include "backend.h"
 #include "chrome_profile.h"
+#include "string_constants.h"
 
 QString getConfigFilePath() {
+    static const auto kFmt = QStringLiteral("%1/browserchooserrc");
     const auto configDir =
         QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    return configDir + QStringLiteral("/browserchooserrc");
+    return kFmt.arg(configDir);
 }
 
 QStringList readCommaSeparatedList(const QString &key) {
@@ -37,35 +39,51 @@ bool listContainsIdentifier(const QStringList &list, const QString &identifier) 
     });
 }
 
+#ifndef Q_OS_WIN
+// POSIX: single-quote style per Python shlex.quote.
+// https://github.com/python/cpython/blob/3.14/Lib/shlex.py#L320
+static const auto kEmptyQuoted = QStringLiteral("''");
+static const auto kSingleQuoteEscape = QStringLiteral("'\"'\"'");
+
+static bool isSafeShellChar(QChar c) {
+    const ushort u = c.unicode();
+    if (u >= 128) {
+        return false;
+    }
+    if (u >= '0' && u <= '9') {
+        return true;
+    }
+    if (u >= 'A' && u <= 'Z') {
+        return true;
+    }
+    if (u >= 'a' && u <= 'z') {
+        return true;
+    }
+    return u == '%' || u == '+' || u == ',' || u == '-' || u == '.' ||
+           u == '/' || u == ':' || u == '=' || u == '@' || u == '_';
+}
+
 QString quoteArg(const QString &arg) {
     if (arg.isEmpty()) {
-        return QStringLiteral("\"\"");
+        return kEmptyQuoted;
     }
-    auto needQuote = false;
-    for (const auto c : arg) {
-        if (c == QLatin1Char(' ') || c == QLatin1Char('"') || c == QLatin1Char('\\')) {
-            needQuote = true;
-            break;
-        }
-    }
-    if (!needQuote) {
+    if (std::ranges::all_of(arg, isSafeShellChar)) {
         return arg;
     }
     QString result;
     result.reserve(arg.size() + 2);
-    result += QLatin1Char('"');
+    result += QLatin1Char('\'');
     for (const auto c : arg) {
-        if (c == QLatin1Char('"')) {
-            result += QStringLiteral("\\\"");
-        } else if (c == QLatin1Char('\\')) {
-            result += QStringLiteral("\\\\");
+        if (c == QLatin1Char('\'')) {
+            result += kSingleQuoteEscape;
         } else {
             result += c;
         }
     }
-    result += QLatin1Char('"');
+    result += QLatin1Char('\'');
     return result;
 }
+#endif // !Q_OS_WIN
 
 void sortBrowserOptionsByDisplayName(QList<BrowserOption> &options) {
     std::ranges::sort(options, [](const BrowserOption &a, const BrowserOption &b) {
@@ -106,25 +124,28 @@ static QString launchCommandsKey(const QString &desktopPath, const QString &prof
     if (profileName.isEmpty()) {
         return desktopPath;
     }
-    return desktopPath + QLatin1Char('|') + profileName;
+    static const auto kFmt = QStringLiteral("%1|%2");
+    return kFmt.arg(desktopPath, profileName);
 }
 
 QList<QStringList> getPreLaunchCommands(const QString &desktopPath,
                                          const QString &profileName) {
-    const auto group = QStringLiteral("PreLaunchCommands/");
-    auto commands = readCommandListFromJson(group + launchCommandsKey(desktopPath, profileName));
+    static const auto kFmt = QStringLiteral("PreLaunchCommands/%1");
+    auto commands = readCommandListFromJson(
+        kFmt.arg(launchCommandsKey(desktopPath, profileName)));
     if (commands.isEmpty() && !profileName.isEmpty()) {
-        commands = readCommandListFromJson(group + desktopPath);
+        commands = readCommandListFromJson(kFmt.arg(desktopPath));
     }
     return commands;
 }
 
 QList<QStringList> getPostLaunchCommands(const QString &desktopPath,
                                           const QString &profileName) {
-    const auto group = QStringLiteral("PostLaunchCommands/");
-    auto commands = readCommandListFromJson(group + launchCommandsKey(desktopPath, profileName));
+    static const auto kFmt = QStringLiteral("PostLaunchCommands/%1");
+    auto commands = readCommandListFromJson(
+        kFmt.arg(launchCommandsKey(desktopPath, profileName)));
     if (commands.isEmpty() && !profileName.isEmpty()) {
-        commands = readCommandListFromJson(group + desktopPath);
+        commands = readCommandListFromJson(kFmt.arg(desktopPath));
     }
     return commands;
 }
@@ -159,22 +180,22 @@ void runPostLaunchCommands(const QString &desktopPath, const QString &profileNam
 }
 
 QString getChromeProfileDisplayName(const QString &desktopPath, const QString &profileId) {
-    if (profileId == QStringLiteral("Guest")) {
+    if (profileId == kGuest) {
         return QCoreApplication::translate("BrowserChooser", "Guest");
     }
     const auto userDataDir = getChromeUserDataDir(desktopPath);
-    if (userDataDir.isEmpty() || !QFile::exists(userDataDir + QStringLiteral("/Local State"))) {
+    if (userDataDir.isEmpty() || !QFile::exists(kFmtLocalState.arg(userDataDir))) {
         return {};
     }
     return getChromeProfileDisplayNameFromUserDataDir(userDataDir, profileId);
 }
 
 QString getChromeProfilePicturePath(const QString &desktopPath, const QString &profileId) {
-    if (profileId == QStringLiteral("Guest")) {
+    if (profileId == kGuest) {
         return {};
     }
     const auto userDataDir = getChromeUserDataDir(desktopPath);
-    if (userDataDir.isEmpty() || !QFile::exists(userDataDir + QStringLiteral("/Local State"))) {
+    if (userDataDir.isEmpty() || !QFile::exists(kFmtLocalState.arg(userDataDir))) {
         return {};
     }
     return getChromeProfilePicturePathFromUserDataDir(userDataDir, profileId);
