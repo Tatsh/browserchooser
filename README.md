@@ -14,7 +14,7 @@
 [![QA](https://github.com/Tatsh/browserchooser/actions/workflows/qa.yml/badge.svg)](https://github.com/Tatsh/browserchooser/actions/workflows/qa.yml)
 [![Tests](https://github.com/Tatsh/browserchooser/actions/workflows/tests.yml/badge.svg)](https://github.com/Tatsh/browserchooser/actions/workflows/tests.yml)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/dependabot)
-[![GitHub Pages](https://github.com/Tatsh/browserchooser/badge/pages)](https://Tatsh.github.io/browserchooser/)
+[![GitHub Pages](https://github.com/Tatsh/browserchooser/badge/pages.yml/badge.svg)](https://Tatsh.github.io/browserchooser/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![Stargazers](https://img.shields.io/github/stars/Tatsh/browserchooser?logo=github&style=flat)](https://github.com/Tatsh/browserchooser/stargazers)
 
