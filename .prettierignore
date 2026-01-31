@@ -11,8 +11,8 @@
 *.libjsonnet
 *.lock
 *.log
-*.m*
 *.mdc
+*.mm
 *.tags
 *~
 .*.swp

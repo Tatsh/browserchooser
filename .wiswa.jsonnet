@@ -27,7 +27,7 @@
       format: 'clang-format -i src/*.cpp src/*.h && yarn prettier -w .',
     },
   },
-  prettierignore+: ['*.desktop', '*.tags', '*.m*'],
+  prettierignore+: ['*.desktop', '*.tags', '*.mm'],
   cz+: {
     commitizen+: {
       version_files+: [

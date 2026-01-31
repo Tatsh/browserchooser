@@ -108,7 +108,7 @@
   },
   "scripts": {
     "build": "cmake --preset=default -DBUILD_DOCS=ON && cmake --build build",
-    "check-formatting": "clang-format -n src/*.cpp src/*.h src/*.m* && prettier -c . && markdownlint-cli2 '**/*.md' '#node_modules' '#vcpkg_installed'",
+    "check-formatting": "clang-format -n src/*.cpp src/*.h src/*.mm && prettier -c . && markdownlint-cli2 '**/*.md' '#node_modules' '#vcpkg_installed'",
     "check-spelling": "cspell --no-progress .",
     "flatpak-build-install": "flatpak run --command=flathub-build org.flatpak.Builder --install sh.tat.browserchooser.yml",
     "flatpak-install": "flatpak uninstall -y browserchooser || true && flatpak install -y --user --reinstall flathub sh.tat.browserchooser",
