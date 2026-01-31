@@ -75,21 +75,25 @@ void launchBrowser(const BrowserOption &option, const QStringList &urls = QStrin
 
 /**
  * Reads a comma-separated list from the config file (e.g. Advanced/hideProfileBrowsers).
+ * @param key Settings key to read.
  */
 [[nodiscard]] QStringList readCommaSeparatedList(const QString &key);
 
 /**
  * Returns true if @p list contains @p identifier (case-insensitive).
+ * @param list List of strings to search.
  */
 [[nodiscard]] bool listContainsIdentifier(const QStringList &list, const QString &identifier);
 
 /**
  * Quotes @p arg for display in a command line (handles space, quotes, backslash).
+ * @param arg Argument to quote.
  */
 [[nodiscard]] QString quoteArg(const QString &arg);
 
 /**
  * Sorts browser options by display name (case-insensitive).
+ * @param options List of BrowserOption objects to sort.
  */
 void sortBrowserOptionsByDisplayName(QList<BrowserOption> &options);
 
@@ -97,7 +101,10 @@ void sortBrowserOptionsByDisplayName(QList<BrowserOption> &options);
  * Returns the pre-launch commands from config for the given browser or browser+profile.
  * Key is the same as RememberedBrowsers: @p desktopPath, or @p desktopPath + @c "|" + @p profileName.
  * Under group @c PreLaunchCommands. Value is a JSON array of arrays of strings.
- * If no entry for browser+profile, falls back to browser-only (desktopPath). Run before launch; each runs synchronously.
+ * If no entry for browser+profile, falls back to browser-only (desktopPath).
+ * @param desktopPath Path to the .desktop file (Linux) or backend-specific identifier.
+ * @param profileName Profile identifier.
+ * @return List of command argument lists.
  */
 [[nodiscard]] QList<QStringList> getPreLaunchCommands(const QString &desktopPath,
                                                       const QString &profileName);
@@ -106,7 +113,10 @@ void sortBrowserOptionsByDisplayName(QList<BrowserOption> &options);
  * Returns the post-launch commands from config for the given browser or browser+profile.
  * Key is the same as RememberedBrowsers: @p desktopPath, or @p desktopPath + @c "|" + @p profileName.
  * Under group @c PostLaunchCommands. Value is a JSON array of arrays of strings.
- * If no entry for browser+profile, falls back to browser-only (desktopPath). Run after launch; each runs detached.
+ * If no entry for browser+profile, falls back to browser-only (desktopPath).
+ * @param desktopPath Path to the .desktop file (Linux) or backend-specific identifier.
+ * @param profileName Profile identifier.
+ * @return List of command argument lists.
  */
 [[nodiscard]] QList<QStringList> getPostLaunchCommands(const QString &desktopPath,
                                                        const QString &profileName);
@@ -120,10 +130,14 @@ void runLaunchHookCommand(const QStringList &argv, bool wait);
 
 /**
  * Runs all pre-launch commands for the given browser or browser+profile (synchronously).
+ * @param desktopPath Path to the .desktop file (Linux) or backend-specific identifier.
+ * @param profileName Profile identifier.
  */
 void runPreLaunchCommands(const QString &desktopPath, const QString &profileName);
 
 /**
  * Runs all post-launch commands for the given browser or browser+profile (detached).
+ * @param desktopPath Path to the .desktop file (Linux) or backend-specific identifier.
+ * @param profileName Profile identifier.
  */
 void runPostLaunchCommands(const QString &desktopPath, const QString &profileName);
