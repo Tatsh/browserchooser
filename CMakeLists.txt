@@ -88,6 +88,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   endif()
 endif()
 
+if(APPLE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "13.0")
+endif()
 add_subdirectory(src)
 
 # Testing

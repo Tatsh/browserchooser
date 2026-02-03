@@ -21,7 +21,7 @@
 	<key>CFBundleVersion</key>
 	<string>@PROJECT_VERSION@</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.13</string>
+	<string>13.0</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
