@@ -28,7 +28,7 @@ jobs:
             ${{github.workspace}}/browserchooser-*.zip
             ${{github.workspace}}/browserchooser-*.dmg
       - name: Attest
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
             ${{github.workspace}}/browserchooser-*.zip
@@ -100,7 +100,7 @@ jobs:
             ${{github.workspace}}/browserchooser-*.exe
             ${{github.workspace}}/browserchooser-*.zip
       - name: Attest
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
             ${{github.workspace}}/browserchooser-*.exe
@@ -166,7 +166,7 @@ jobs:
             ${{github.workspace}}/browserchooser-*.AppImage
             ${{github.workspace}}/browserchooser-*.zip
       - name: Attest
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
             ${{github.workspace}}/browserchooser-*.AppImage
