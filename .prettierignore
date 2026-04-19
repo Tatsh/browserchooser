@@ -8,7 +8,6 @@
 *.j2
 *.jsonnet
 *.kate-swp
-*.libjsonnet
 *.libsonnet
 *.lock
 *.log
@@ -24,9 +23,21 @@
 .eslintignore
 .pnp.*
 .shellcheckrc
+/.bash_profile
+/.bashrc
+/.claude/commands
 /.flatpak-builder/
+/.gitconfig
+/.gitmodules
+/.idea
+/.mcp.json
+/.profile
+/.ripgreprc
+/.wiswa-ci/
 /.yarn/**/*.cjs
 /.yarn/install-state.gz
+/.zprofile
+/.zshrc
 /CMakeUserPresets.json
 /build/
 /build_fp/
@@ -34,3 +45,4 @@
 /repo/
 /vcpkg_installed/
 node_modules/
+pylock*.toml

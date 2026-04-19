@@ -1,5 +1,6 @@
 abcxyz
 advapi
+Ångström
 appdir
 appimage
 appl
@@ -33,6 +34,7 @@ codesign
 color
 commitizen
 configtest
+cooldown
 coveragerc
 coverallsapp
 cpack
@@ -50,10 +52,10 @@ desktopentrytest
 docstrings
 domainmatch
 domainmatchtest
-dorny
 draggablepopup
 endforeach
 endfunction
+esac
 esbenp
 evenodd
 fileflags
@@ -78,13 +80,13 @@ ignoregeometryrule
 instdir
 interprocedural
 iwyu
+jinja
 jsonnet
 jsonschema
 jurplel
 launchable
 libc
 libera
-libjsonnet
 libsonnet
 linuxdeploy
 mainpage
@@ -98,6 +100,7 @@ mypy
 ndebug
 nodisplay
 nonexistent
+npmjs
 nrvo
 nsis
 nullptr
@@ -109,6 +112,7 @@ percentu
 positionrule
 productversion
 progids
+pylock
 qcompare
 qgetenv
 qobject
@@ -125,6 +129,7 @@ qverify
 rect
 reflow
 regen
+ripgreprc
 rmpath
 schemafile
 selectorwidget
@@ -152,10 +157,10 @@ versioninfo
 weverything
 winget
 wiswa
+wiswa's
 wmclass
 wmclassmatch
 wpessimizing
 wswitch
 xlink
 yarnrc
-ångström

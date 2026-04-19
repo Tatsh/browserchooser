@@ -1,4 +1,5 @@
 {
+  uses_user_defaults: true,
   security_policy_supported_versions: { '0.0.x': ':white_check_mark:' },
   project_name: 'browserchooser',
   version: '0.0.1',
@@ -7,9 +8,6 @@
   want_main: false,
   want_codeql: false,
   want_tests: false,
-  copilot+: {
-    intro: 'Browser Chooser is a small application that allows you to choose which browser to open based on the domain name of the link you clicked. It is useful for people who want to use different browsers for different purposes, such as work and personal browsing.',
-  },
   package_json+: {
     cspell+: {
       ignorePaths+: [
