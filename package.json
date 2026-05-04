@@ -1,4 +1,9 @@
 {
+  "_wiswa": {
+    "commandLine": "wiswa",
+    "lastRun": "2026-05-04T13:37:04Z",
+    "version": "c3a3bda-dirty"
+  },
   "contributors": ["Andrew Udvare <audvare@gmail.com>"],
   "cspell": {
     "cache": {
@@ -112,7 +117,7 @@
   },
   "scripts": {
     "build": "cmake --preset=default -DBUILD_DOCS=ON && cmake --build build",
-    "check-formatting": "clang-format -n src/*.cpp src/*.h && prettier -c . && markdownlint-cli2 '**/*.md' '#node_modules' '#vcpkg_installed'",
+    "check-formatting": "clang-format --dry-run src/*.cpp src/*.h && prettier --check . && markdownlint-cli2 --config package.json --configPointer /markdownlint-cli2",
     "check-spelling": "cspell --no-progress .",
     "dict:update": "rm -f .vscode/dictionary.txt && cspell lint --no-progress --no-summary --unique --words-only | tr '[:upper:]' '[:lower:]' | sort -u > .vscode/dictionary.txt",
     "flatpak-build-install": "flatpak run --command=flathub-build org.flatpak.Builder --install sh.tat.browserchooser.yml",
@@ -120,7 +125,7 @@
     "flatpak-lint": "flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest sh.tat.browserchooser.yml",
     "flatpak-run": "flatpak run sh.tat.browserchooser",
     "flatpak-uninstall": "flatpak uninstall -y sh.tat.browserchooser",
-    "format": "clang-format -i src/*.cpp src/*.h && yarn prettier -w .",
+    "format": "clang-format -i src/*.cpp src/*.h && prettier --write . && markdownlint-cli2 --config package.json --configPointer /markdownlint-cli2 --fix",
     "qa": "yarn check-spelling && yarn check-formatting"
   },
   "version": "0.0.1"
