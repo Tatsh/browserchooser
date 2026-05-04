@@ -20,8 +20,6 @@ jobs:
           sudo apt-get install -y extra-cmake-modules
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
-        with:
-          modules: qtmultimedia
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:

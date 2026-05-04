@@ -1,0 +1,51 @@
+apps:
+  browserchooser:
+    command: 'usr/bin/browserchooser'
+    common-id: 'sh.tat.browserchooser'
+    desktop: 'usr/share/applications/sh.tat.browserchooser.desktop'
+    extensions:
+      - 'kde-neon-6'
+    plugs:
+      - 'desktop'
+      - 'desktop-legacy'
+      - 'home'
+      - 'network'
+      - 'opengl'
+      - 'removable-media'
+      - 'wayland'
+      - 'x11'
+base: 'core24'
+confinement: 'strict'
+contact: 'https://github.com/Tatsh/browserchooser/issues'
+description: |
+  Browser Chooser is a small dialogue that lets you pick which browser, and
+  which profile, to use when opening a link. Set it as your default browser
+  and it will appear whenever a non-browser application opens a URL,
+  optionally remembering the choice per domain.
+donation: 'https://buymeacoffee.com/Tatsh'
+grade: 'stable'
+issues: 'https://github.com/Tatsh/browserchooser/issues'
+license: 'MIT'
+name: 'browserchooser'
+parts:
+  browserchooser:
+    build-environment:
+      - LDFLAGS: '-Wl,--allow-shlib-undefined'
+    build-packages:
+      - 'extra-cmake-modules'
+    cmake-parameters:
+      - '-DCMAKE_BUILD_TYPE=Release'
+      - '-DCMAKE_INSTALL_PREFIX=/usr'
+      - '-DFHS=ON'
+    plugin: 'cmake'
+    source: '.'
+platforms:
+  amd64:
+    build-on: 'amd64'
+  arm64:
+    build-on: 'arm64'
+source-code: 'https://github.com/Tatsh/browserchooser'
+summary: 'Pick which browser and profile opens a link'
+title: 'Browser Chooser'
+version: '0.0.1'
+website: 'https://github.com/Tatsh/browserchooser'
