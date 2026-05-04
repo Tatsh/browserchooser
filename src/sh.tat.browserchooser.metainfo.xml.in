@@ -3,6 +3,7 @@
   <id>sh.tat.@CMAKE_PROJECT_NAME@</id>
   <name>@DISPLAY_NAME@</name>
   <summary>Pick which browser and profile to use when opening a link.</summary>
+  <metadata_license>MIT</metadata_license>
   <description>
     <p>
       Set @DISPLAY_NAME@ as your default browser. When you click URLs in
