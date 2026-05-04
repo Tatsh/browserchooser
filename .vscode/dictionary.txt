@@ -157,6 +157,7 @@ tagfiles
 tatsh
 testdata
 testdatadir
+tolower
 tostring
 ucrt
 udvare
@@ -167,6 +168,7 @@ vendored
 venv
 versioninfo
 weverything
+winarch
 winarm
 winget
 wiswa
