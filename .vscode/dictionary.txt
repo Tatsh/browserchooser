@@ -1,4 +1,5 @@
 abcxyz
+aclocal
 advapi
 Ångström
 appdir
@@ -30,6 +31,8 @@ buildsystems
 bytearray
 chromeprofile
 chromeprofiletest
+choco
+clangarm
 codesign
 color
 commitizen
@@ -46,9 +49,11 @@ datarootdir
 dbuild
 dcmake
 dcoverage
+dcpack
 desktopentry
 desktopentrymac
 desktopentrytest
+dfhs
 docstrings
 domainmatch
 domainmatchtest
@@ -85,8 +90,10 @@ jsonnet
 jsonschema
 jurplel
 launchable
+ldflags
 libc
 libera
+libqwayland
 libsonnet
 linuxdeploy
 mainpage
@@ -137,6 +144,8 @@ shctx
 shellcheck
 shellformat
 shlex
+shlib
+snapcore
 snapcraft
 softprops
 strcmp
@@ -146,6 +155,7 @@ tagfiles
 tatsh
 testdata
 testdatadir
+tostring
 ucrt
 udvare
 urlparser
@@ -155,6 +165,7 @@ vendored
 venv
 versioninfo
 weverything
+winarm
 winget
 wiswa
 wiswa's
