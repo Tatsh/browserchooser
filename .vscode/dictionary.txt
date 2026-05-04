@@ -116,6 +116,10 @@ oneline
 osascript
 pacboy
 percentu
+pkgbuild
+pkgcheck
+pkgrel
+pkgver
 positionrule
 productversion
 progids
