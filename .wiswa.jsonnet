@@ -4,6 +4,12 @@
   project_name: 'browserchooser',
   version: '0.0.1',
   description: 'Pick which browser to use based on domain names.',
+  social+: {
+    custom_badges: [
+      '[![Tests](https://github.com/Tatsh/browserchooser/actions/workflows/tests.yml/badge.svg)](https://github.com/Tatsh/browserchooser/actions/workflows/tests.yml)',
+      '[![Coverage Status](https://coveralls.io/repos/github/Tatsh/browserchooser/badge.svg?branch=master)](https://coveralls.io/github/Tatsh/browserchooser?branch=master)',
+    ],
+  },
   keywords: ['browser', 'linux'],
   want_main: false,
   want_codeql: false,
