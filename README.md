@@ -5,7 +5,7 @@
 [![C++](https://img.shields.io/badge/C++-00599C?logo=c%2B%2B)](https://isocpp.org)
 [![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Tatsh/browserchooser)](https://github.com/Tatsh/browserchooser/tags)
 [![License](https://img.shields.io/github/license/Tatsh/browserchooser)](https://github.com/Tatsh/browserchooser/blob/master/LICENSE.txt)
-[![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/browserchooser/v0.0.1/master)](https://github.com/Tatsh/browserchooser/compare/v0.0.1...master)
+[![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/browserchooser/v0.0.2/master)](https://github.com/Tatsh/browserchooser/compare/v0.0.2...master)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/dependabot)
 [![GitHub Pages](https://github.com/Tatsh/browserchooser/actions/workflows/pages.yml/badge.svg)](https://tatsh.github.io/browserchooser/)
 [![Stargazers](https://img.shields.io/github/stars/Tatsh/browserchooser?logo=github&style=flat)](https://github.com/Tatsh/browserchooser/stargazers)

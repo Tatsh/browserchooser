@@ -38,7 +38,8 @@ parts:
       - '-DCMAKE_INSTALL_PREFIX=/usr'
       - '-DFHS=ON'
     plugin: 'cmake'
-    source: '.'
+    source: 'https://github.com/Tatsh/browserchooser.git'
+    source-tag: 'v0.0.2'
 platforms:
   amd64:
     build-on: 'amd64'
@@ -47,5 +48,5 @@ platforms:
 source-code: 'https://github.com/Tatsh/browserchooser'
 summary: 'Pick which browser and profile opens a link'
 title: 'Browser Chooser'
-version: '0.0.1'
+version: '0.0.2'
 website: 'https://github.com/Tatsh/browserchooser'

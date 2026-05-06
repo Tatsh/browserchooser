@@ -2,7 +2,7 @@
   uses_user_defaults: true,
   security_policy_supported_versions: { '0.0.x': ':white_check_mark:' },
   project_name: 'browserchooser',
-  version: '0.0.1',
+  version: '0.0.2',
   description: 'Pick which browser to use based on domain names.',
   social+: {
     custom_badges: [
@@ -90,6 +90,14 @@
     publish_winget: {
       identifier: 'Tatsh.BrowserChooser',
       max_versions_to_keep: 1,
+    },
+  },
+  snapcraft+: {
+    parts+: {
+      browserchooser+: {
+        source: 'https://github.com/Tatsh/browserchooser.git',
+        'source-tag': 'v0.0.2',
+      },
     },
   },
 }

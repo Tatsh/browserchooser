@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(
   browserchooser
-  VERSION 0.0.1
+  VERSION 0.0.2
   LANGUAGES CXX
   DESCRIPTION "A simple browser chooser."
   HOMEPAGE_URL "https://github.com/Tatsh/browserchooser")

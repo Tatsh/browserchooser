@@ -9,6 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+## [0.0.2] - 2026-05-06
+
 ### Fixed
 
 - MSVC Windows installs now bundle their runtime dependencies (Qt6, MSVC redistributable, and other
@@ -19,5 +21,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 First version.
 
-[unreleased]: https://github.com/Tatsh/browserchooser/compare/v0.0.1...HEAD
+[unreleased]: https://github.com/Tatsh/browserchooser/compare/v0.0.2...HEAD
+[0.0.2]: https://github.com/Tatsh/browserchooser/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/Tatsh/browserchooser/releases/tag/v0.0.1
