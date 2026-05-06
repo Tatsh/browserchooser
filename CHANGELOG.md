@@ -9,6 +9,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+### Fixed
+
+- MSVC Windows installs now bundle their runtime dependencies (Qt6, MSVC redistributable, and other
+  required DLLs) into the install tree, matching the behaviour previously available only for MinGW
+  builds.
+
 ## [0.0.1] - 2026-01-31
 
 First version.
