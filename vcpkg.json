@@ -2,10 +2,13 @@
   "dependencies": [
     {
       "name": "ecm",
-      "version>=": "6.7.0"
+      "version>=": "6.25.0"
     },
     {
-      "features": ["gui", "widgets"],
+      "features": [
+        "gui",
+        "widgets"
+      ],
       "name": "qtbase",
       "version>=": "6.8.3"
     }
@@ -14,7 +17,9 @@
   "documentation": "https://browserchooser.readthedocs.org",
   "homepage": "https://tatsh.github.io/browserchooser/",
   "license": "MIT",
-  "maintainers": ["Andrew Udvare <audvare@gmail.com>"],
+  "maintainers": [
+    "Andrew Udvare <audvare@gmail.com>"
+  ],
   "name": "browserchooser",
   "version": "0.0.2"
 }
