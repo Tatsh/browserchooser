@@ -12,8 +12,8 @@
       "vcpkg.json",
       "man/browserchooser.1",
       "sh.tat.browserchooser.yml",
-      "snapcraft.yaml",
-      "src/main.cpp"
+      "src/main.cpp",
+      "snapcraft.yaml"
     ],
     "version_provider": "npm",
     "version_scheme": "semver"

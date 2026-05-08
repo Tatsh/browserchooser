@@ -121,6 +121,7 @@ pkgcheck
 pkgrel
 pkgver
 positionrule
+preapproved
 productversion
 progids
 pylock

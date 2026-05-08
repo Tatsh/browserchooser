@@ -1,8 +1,8 @@
 {
   "_wiswa": {
     "commandLine": "wiswa",
-    "lastRun": "2026-05-04T13:37:04Z",
-    "version": "c3a3bda-dirty"
+    "lastRun": "2026-05-08T00:16:54Z",
+    "version": "3d1ef61"
   },
   "contributors": ["Andrew Udvare <audvare@gmail.com>"],
   "cspell": {
@@ -113,7 +113,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:Tatsh/browserchooser.git"
+    "url": "git+https://github.com/Tatsh/browserchooser.git"
   },
   "scripts": {
     "build": "cmake --preset=default -DBUILD_DOCS=ON && cmake --build build",
