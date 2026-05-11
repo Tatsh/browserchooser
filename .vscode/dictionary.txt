@@ -9,7 +9,6 @@ autobuild
 autoinstall
 automoc
 autorcc
-autosort
 autouic
 backendcommon
 backendcommontest
@@ -107,7 +106,6 @@ mypy
 ndebug
 nodisplay
 nonexistent
-npmjs
 nrvo
 nsis
 nullptr
@@ -125,6 +123,7 @@ preapproved
 productversion
 progids
 pylock
+pyproject
 qcompare
 qgetenv
 qobject
@@ -163,6 +162,8 @@ tolower
 tostring
 ucrt
 udvare
+undraft
+undrafted
 urlparser
 urlparsertest
 vedantmgoyal
@@ -177,6 +178,7 @@ wiswa
 wiswa's
 wmclass
 wmclassmatch
+worktree
 wpessimizing
 wswitch
 xlink
