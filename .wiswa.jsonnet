@@ -1,3 +1,5 @@
+local utils = import 'utils.libsonnet';
+
 {
   uses_user_defaults: true,
   security_policy_supported_versions: { '0.0.x': ':white_check_mark:' },
@@ -81,12 +83,12 @@
     dependencies: [
       {
         name: 'ecm',
-        'version>=': '6.7.0',
+        'version>=': utils.latestVcpkgPortVersion('ecm'),
       },
       {
         features: ['gui', 'widgets'],
         name: 'qtbase',
-        'version>=': '6.8.3',
+        'version>=': utils.latestVcpkgPortVersion('qtbase'),
       },
     ],
   },

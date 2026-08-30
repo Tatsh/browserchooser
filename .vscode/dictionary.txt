@@ -1,7 +1,6 @@
 abcxyz
 aclocal
 advapi
-Ångström
 appdir
 appimage
 appl
@@ -35,7 +34,6 @@ clangarm
 color
 commitizen
 configtest
-cooldown
 coveragerc
 coverallsapp
 cpack
@@ -73,6 +71,7 @@ foxundermoon
 fsafe
 gmock
 graphviz
+handoff
 hkcu
 iconset
 iconutil
@@ -96,6 +95,7 @@ libsonnet
 linuxdeploy
 mainpage
 mandir
+mapfile
 mdfile
 metainfo
 mktemp
@@ -122,6 +122,7 @@ positionrule
 preapproved
 productversion
 progids
+pyinstaller
 pylock
 pyproject
 qcompare
@@ -150,7 +151,7 @@ shlex
 shlib
 snapcore
 snapcraft
-softprops
+statusline
 strcmp
 strequal
 tagfile
@@ -183,3 +184,5 @@ wpessimizing
 wswitch
 xlink
 yarnrc
+zizmor
+Ångström

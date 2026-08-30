@@ -1,16 +1,22 @@
 ---
 jobs:
   build-macos:
-    runs-on: ${{ matrix.os }}
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    runs-on: ${{ matrix.os.runner }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Install deps
         run: brew install extra-cmake-modules qt
       - run: |
           cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
-            --install-prefix ${{github.workspace}}/build/prefix
+            --install-prefix ${{github.workspace}}/build/prefix \
+            -DCPACK_SYSTEM_NAME=${{matrix.os.cpack_system}}
           cmake --build build --config ${{matrix.build-type}} --verbose
           cmake --install ${{github.workspace}}/build --config ${{matrix.build-type}} --verbose
       - name: Package
@@ -18,34 +24,42 @@ jobs:
           cpack -C ${{matrix.build-type}}
           --config ${{github.workspace}}/build/CPackConfig.cmake --verbose
       - name: 'Upload Artifacts'
-        uses: 'actions/upload-artifact@v7'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
           if-no-files-found: error
-          name: browserchooser-${{ matrix.build-type }}-${{ matrix.os }}
+          name: browserchooser-${{ matrix.build-type }}-${{ matrix.os.cpack_system }}
           path: |
             ${{github.workspace}}/browserchooser-*.zip
             ${{github.workspace}}/browserchooser-*.dmg
       - name: Attest
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8
         with:
           subject-path: |
             ${{github.workspace}}/browserchooser-*.zip
             ${{github.workspace}}/browserchooser-*.dmg
-      - if: ${{ github.ref_type == 'tag' }}
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        if: ${{ github.ref_type == 'tag' && matrix.build-type == 'Release' }}
         name: Upload package
-        uses: softprops/action-gh-release@v3.0.2
-        with:
-          draft: true
-          fail_on_unmatched_files: true
-          files: |
-            ${{github.workspace}}/browserchooser-*.zip
-            ${{github.workspace}}/browserchooser-*.dmg
+        run: |
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
+            --title "$GITHUB_REF_NAME" --notes '' || true
+          gh release upload "$GITHUB_REF_NAME" --clobber \
+            browserchooser-*.zip browserchooser-*.dmg
     strategy:
       fail-fast: false
       matrix:
         build-type: [Debug, Release]
-        os: [macos-latest, macos-15-intel]
+        os:
+          - cpack_system: Darwin-arm64
+            runner: macos-latest
+          - cpack_system: Darwin-x86_64
+            runner: macos-15-intel
   build-msys:
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
     runs-on: ${{ matrix.sys.runner }}
     steps:
       - id: fixed_workspace
@@ -58,7 +72,7 @@ jobs:
         run: |
           choco install nsis -y --no-progress
           'C:\Program Files (x86)\NSIS' | Out-File -Append -Encoding utf8 -FilePath $env:GITHUB_PATH
-      - uses: msys2/setup-msys2@v2
+      - uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884
         with:
           install: >-
             make
@@ -73,32 +87,41 @@ jobs:
             toolchain:p
             zlib:p
           update: true
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
-      - name: Configure
+          persist-credentials: false
+      - env:
+          WORKSPACE_OUT: ${{ steps.fixed_workspace.outputs.out }}
+        name: Configure
         run: >-
-          cmake -G Ninja -B ${{steps.fixed_workspace.outputs.out}}/build
-          --install-prefix ${{steps.fixed_workspace.outputs.out}}/build/prefix
+          cmake -G Ninja -B "$WORKSPACE_OUT/build"
+          --install-prefix "$WORKSPACE_OUT/build/prefix"
           -DCMAKE_BUILD_TYPE=${{matrix.build-type}}
           -DCPACK_SYSTEM_NAME=${{matrix.sys.cpack_system}}
           -DFHS=OFF
         shell: msys2 {0}
-      - name: Build
-        run: cmake --build ${{steps.fixed_workspace.outputs.out}}/build --verbose
+      - env:
+          WORKSPACE_OUT: ${{ steps.fixed_workspace.outputs.out }}
+        name: Build
+        run: cmake --build "$WORKSPACE_OUT/build" --verbose
         shell: msys2 {0}
-      - name: Install
+      - env:
+          WORKSPACE_OUT: ${{ steps.fixed_workspace.outputs.out }}
+        name: Install
         run: >-
-          cmake --install ${{steps.fixed_workspace.outputs.out}}/build
+          cmake --install "$WORKSPACE_OUT/build"
           --config ${{matrix.build-type}} --verbose
         shell: msys2 {0}
-      - name: Package
+      - env:
+          WORKSPACE_OUT: ${{ steps.fixed_workspace.outputs.out }}
+        name: Package
         run: >-
           cpack -C ${{matrix.build-type}}
-          --config ${{steps.fixed_workspace.outputs.out}}/build/CPackConfig.cmake --verbose
+          --config "$WORKSPACE_OUT/build/CPackConfig.cmake" --verbose
         shell: msys2 {0}
       - name: 'Upload Artifacts'
-        uses: 'actions/upload-artifact@v7'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
           if-no-files-found: error
           name: browserchooser-${{ matrix.build-type }}-${{ matrix.sys.name }}
@@ -106,20 +129,23 @@ jobs:
             ${{github.workspace}}/browserchooser-*.exe
             ${{github.workspace}}/browserchooser-*.zip
       - name: Attest
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8
         with:
           subject-path: |
             ${{github.workspace}}/browserchooser-*.exe
             ${{github.workspace}}/browserchooser-*.zip
-      - if: ${{ github.ref_type == 'tag' && matrix.sys.release }}
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        if: >-
+          ${{ github.ref_type == 'tag' && matrix.sys.release &&
+          matrix.build-type == 'Release' }}
         name: Upload package
-        uses: softprops/action-gh-release@v3.0.2
-        with:
-          draft: true
-          fail_on_unmatched_files: true
-          files: |
-            ${{github.workspace}}/browserchooser-*.exe
-            ${{github.workspace}}/browserchooser-*.zip
+        run: |
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
+            --title "$GITHUB_REF_NAME" --notes '' || true
+          gh release upload "$GITHUB_REF_NAME" --clobber \
+            browserchooser-*.exe browserchooser-*.zip
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
@@ -141,17 +167,22 @@ jobs:
             release: true
             runner: windows-11-arm
   build-linux:
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
     runs-on: ${{ matrix.arch.runner }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y extra-cmake-modules lcov tree
       - name: Install Qt
-        uses: jurplel/install-qt-action@v4
+        uses: Tatsh/install-qt-action@c06aab43ae9bf6a28175c9cf45dd5936d44e21e9
       - name: Configure
         run: >-
           cmake -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -B ${{github.workspace}}/build
@@ -179,11 +210,16 @@ jobs:
           "./linuxdeploy-${DEPLOY_ARCH}.AppImage" --appdir ${{github.workspace}}/build/AppDir --plugin qt --output appimage
           rm "./linuxdeploy-${DEPLOY_ARCH}.AppImage" "./linuxdeploy-plugin-qt-${DEPLOY_ARCH}.AppImage"
           mv -v ${{github.workspace}}/*.AppImage "${{github.workspace}}/browserchooser-${{matrix.build-type}}-${DEPLOY_ARCH}.AppImage"
-      - if: ${{ github.ref_type == 'tag' && matrix.build-type == 'Release' }}
+      - env:
+          DEPLOY_ARCH: ${{ matrix.arch.deploy_arch }}
+          REF_NAME: ${{ github.ref_name }}
+        if: ${{ github.ref_type == 'tag' && matrix.build-type == 'Release' }}
         name: Rename with tag
-        run: mv -v ${{github.workspace}}/browserchooser-*.AppImage ${{github.workspace}}/browserchooser-${{github.ref_name}}-${{matrix.arch.deploy_arch}}.AppImage
+        run: >-
+          mv -v ${{github.workspace}}/browserchooser-*.AppImage
+          "${{github.workspace}}/browserchooser-${REF_NAME}-${DEPLOY_ARCH}.AppImage"
       - name: 'Upload Artifacts'
-        uses: 'actions/upload-artifact@v7'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
           if-no-files-found: error
           name: browserchooser-${{ matrix.build-type }}-Linux-${{ matrix.arch.deploy_arch }}
@@ -191,19 +227,19 @@ jobs:
             ${{github.workspace}}/browserchooser-*.AppImage
             ${{github.workspace}}/browserchooser-*.zip
       - name: Attest
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8
         with:
           subject-path: |
             ${{github.workspace}}/browserchooser-*.AppImage
             ${{github.workspace}}/browserchooser-*.zip
-      - if: ${{ github.ref_type == 'tag' && matrix.build-type == 'Release' }}
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        if: ${{ github.ref_type == 'tag' && matrix.build-type == 'Release' }}
         name: Upload package
-        uses: softprops/action-gh-release@v3.0.2
-        with:
-          draft: true
-          fail_on_unmatched_files: true
-          files: |
-            ${{github.workspace}}/browserchooser-*.AppImage
+        run: |
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
+            --title "$GITHUB_REF_NAME" --notes '' || true
+          gh release upload "$GITHUB_REF_NAME" --clobber browserchooser-*.AppImage
     strategy:
       fail-fast: false
       matrix:
@@ -222,6 +258,4 @@ name: Build
   pull_request:
     branches: [master]
 permissions:
-  attestations: write
-  contents: write
-  id-token: write
+  contents: read
