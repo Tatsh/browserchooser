@@ -33,6 +33,7 @@ chromeprofiletest
 clangarm
 color
 commitizen
+concrt
 configtest
 coveragerc
 coverallsapp
@@ -100,6 +101,9 @@ mdfile
 metainfo
 mktemp
 msvc
+msvcp
+msvcprtd
+msvcrtd
 msys
 msystem
 mypy
@@ -164,11 +168,15 @@ testdatadir
 tolower
 tostring
 ucrt
+ucrtbased
 udvare
 undraft
 undrafted
 urlparser
 urlparsertest
+vccorlib
+vcomp
+vcruntime
 vedantmgoyal
 vendored
 venv
