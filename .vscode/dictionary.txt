@@ -106,9 +106,11 @@ mypy
 ndebug
 nodisplay
 nonexistent
+noone
 nrvo
 nsis
 nullptr
+numpydoc
 offscreen
 oneline
 osascript
@@ -171,6 +173,7 @@ vedantmgoyal
 vendored
 venv
 versioninfo
+werror
 weverything
 winarch
 winarm
@@ -179,7 +182,6 @@ wiswa
 wiswa's
 wmclass
 wmclassmatch
-worktree
 wpessimizing
 wswitch
 xlink
