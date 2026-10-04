@@ -150,6 +150,7 @@ reflow
 regen
 ripgreprc
 rmpath
+sbclaude
 schemafile
 selectorwidget
 shctx
