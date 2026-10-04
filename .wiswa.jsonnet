@@ -20,6 +20,7 @@ local utils = import 'utils.libsonnet';
   want_main: false,
   want_codeql: false,
   want_tests: false,
+  want_msys2: true,
   package_json+: {
     cspell+: {
       ignorePaths+: [
@@ -93,9 +94,15 @@ local utils = import 'utils.libsonnet';
     ],
   },
   github+: {
-    publish_winget: {
-      identifier: 'Tatsh.BrowserChooser',
-      max_versions_to_keep: 1,
+    workflows+: {
+      publish_msys2+: {
+        fork: 'Tatsh/MINGW-packages',
+        package_name: 'browserchooser',
+      },
+      publish_winget+: {
+        identifier: 'Tatsh.BrowserChooser',
+        max_versions_to_keep: 1,
+      },
     },
   },
   snapcraft+: {
