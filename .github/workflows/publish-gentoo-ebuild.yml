@@ -1,7 +1,12 @@
 ---
+concurrency:
+  cancel-in-progress: false
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  queue: 'max'
 jobs:
   create-ebuild-pr:
     if: '!github.event.release.draft && !github.event.release.prerelease'
+    name: 'Create ebuild pull request'
     runs-on: ubuntu-latest
     steps:
       - name: Extract version
@@ -22,14 +27,14 @@ jobs:
           token: ${{ secrets.GENTOO_TOKEN }}
       - name: Configure git
         run: |
-          cd gentoo
+          cd gentoo || exit 1
           git config user.name "Andrew Udvare"
           git config user.email "audvare@gmail.com"
       - env:
           VERSION: ${{ steps.version.outputs.version }}
         name: Create new ebuild
         run: |
-          cd gentoo
+          cd gentoo || exit 1
           EBUILD_DIR=x11-misc/browserchooser
           LATEST=$(find "$EBUILD_DIR" -name 'browserchooser-*.ebuild' 2>/dev/null | sort -V | tail -1)
           cp "$LATEST" "${EBUILD_DIR}/browserchooser-${VERSION}.ebuild"

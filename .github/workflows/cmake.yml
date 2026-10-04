@@ -1,6 +1,11 @@
 ---
+concurrency:
+  cancel-in-progress: false
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  queue: 'max'
 jobs:
   build-macos:
+    name: 'Build (macOS)'
     permissions:
       attestations: write
       contents: write
@@ -13,16 +18,21 @@ jobs:
           persist-credentials: false
       - name: Install deps
         run: brew install extra-cmake-modules qt
-      - run: |
-          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
-            --install-prefix ${{github.workspace}}/build/prefix \
-            -DCPACK_SYSTEM_NAME=${{matrix.os.cpack_system}}
-          cmake --build build --config ${{matrix.build-type}} --verbose
-          cmake --install ${{github.workspace}}/build --config ${{matrix.build-type}} --verbose
-      - name: Package
+      - env:
+          BUILD_TYPE: '${{ matrix.build-type }}'
+          CPACK_SYSTEM: '${{ matrix.os.cpack_system }}'
+        run: |
+          cmake -G Ninja -B build -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
+            --install-prefix "${GITHUB_WORKSPACE}"/build/prefix \
+            -DCPACK_SYSTEM_NAME="${CPACK_SYSTEM}"
+          cmake --build build --config "${BUILD_TYPE}" --verbose
+          cmake --install "${GITHUB_WORKSPACE}"/build --config "${BUILD_TYPE}" --verbose
+      - env:
+          BUILD_TYPE: '${{ matrix.build-type }}'
+        name: Package
         run: >-
-          cpack -C ${{matrix.build-type}}
-          --config ${{github.workspace}}/build/CPackConfig.cmake --verbose
+          cpack -C "${BUILD_TYPE}"
+          --config "${GITHUB_WORKSPACE}"/build/CPackConfig.cmake --verbose
       - name: 'Upload Artifacts'
         uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
@@ -56,6 +66,7 @@ jobs:
           - cpack_system: Darwin-x86_64
             runner: macos-15-intel
   build-msys:
+    name: 'Build (MSYS2)'
     permissions:
       attestations: write
       contents: write
@@ -65,13 +76,15 @@ jobs:
       - id: fixed_workspace
         name: Fix path
         run: >-
-          echo out=$("${{github.workspace}}" -Replace "\\","/") | Out-File
+          echo out=$("$env:GITHUB_WORKSPACE" -Replace "\\","/") | Out-File
           -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        shell: 'pwsh'
       - if: matrix.sys.name == 'clangarm64'
         name: Install NSIS via Chocolatey
         run: |
           choco install nsis -y --no-progress
           'C:\Program Files (x86)\NSIS' | Out-File -Append -Encoding utf8 -FilePath $env:GITHUB_PATH
+        shell: 'pwsh'
       - uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884
         with:
           install: >-
@@ -92,13 +105,15 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - env:
+          BUILD_TYPE: '${{ matrix.build-type }}'
+          CPACK_SYSTEM: '${{ matrix.sys.cpack_system }}'
           WORKSPACE_OUT: ${{ steps.fixed_workspace.outputs.out }}
         name: Configure
         run: >-
           cmake -G Ninja -B "$WORKSPACE_OUT/build"
           --install-prefix "$WORKSPACE_OUT/build/prefix"
-          -DCMAKE_BUILD_TYPE=${{matrix.build-type}}
-          -DCPACK_SYSTEM_NAME=${{matrix.sys.cpack_system}}
+          -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+          -DCPACK_SYSTEM_NAME="${CPACK_SYSTEM}"
           -DFHS=OFF
         shell: msys2 {0}
       - env:
@@ -107,17 +122,19 @@ jobs:
         run: cmake --build "$WORKSPACE_OUT/build" --verbose
         shell: msys2 {0}
       - env:
+          BUILD_TYPE: '${{ matrix.build-type }}'
           WORKSPACE_OUT: ${{ steps.fixed_workspace.outputs.out }}
         name: Install
         run: >-
           cmake --install "$WORKSPACE_OUT/build"
-          --config ${{matrix.build-type}} --verbose
+          --config "${BUILD_TYPE}" --verbose
         shell: msys2 {0}
       - env:
+          BUILD_TYPE: '${{ matrix.build-type }}'
           WORKSPACE_OUT: ${{ steps.fixed_workspace.outputs.out }}
         name: Package
         run: >-
-          cpack -C ${{matrix.build-type}}
+          cpack -C "${BUILD_TYPE}"
           --config "$WORKSPACE_OUT/build/CPackConfig.cmake" --verbose
         shell: msys2 {0}
       # Release binaries link the release CRT. The scan below reports markers such as
@@ -156,6 +173,7 @@ jobs:
           if ($failed) {
             exit 1
           }
+        shell: 'pwsh'
       - name: 'Upload Artifacts'
         uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
@@ -203,6 +221,7 @@ jobs:
             release: true
             runner: windows-11-arm
   build-linux:
+    name: 'Build (Linux)'
     permissions:
       attestations: write
       contents: write
@@ -219,22 +238,31 @@ jobs:
           sudo apt-get install -y extra-cmake-modules lcov tree
       - name: Install Qt
         uses: jurplel/install-qt-action@a9c63c7c123f3069cff414e7e482d95dfa9d8125
-      - name: Configure
+      - env:
+          BUILD_TYPE: '${{ matrix.build-type }}'
+        name: Configure
         run: >-
-          cmake -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -B ${{github.workspace}}/build
-          --install-prefix ${{github.workspace}}/build/AppDir/usr
+          cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -B "${GITHUB_WORKSPACE}"/build
+          --install-prefix "${GITHUB_WORKSPACE}"/build/AppDir/usr
           -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
           -DFHS=ON
-      - name: Build
-        run: cmake --build ${{github.workspace}}/build --verbose --config ${{matrix.build-type}}
-      - name: Install
-        run: cmake --install ${{github.workspace}}/build --config ${{matrix.build-type}} --verbose
-      - name: Package
+      - env:
+          BUILD_TYPE: '${{ matrix.build-type }}'
+        name: Build
+        run: cmake --build "${GITHUB_WORKSPACE}"/build --verbose --config "${BUILD_TYPE}"
+      - env:
+          BUILD_TYPE: '${{ matrix.build-type }}'
+        name: Install
+        run: cmake --install "${GITHUB_WORKSPACE}"/build --config "${BUILD_TYPE}" --verbose
+      - env:
+          BUILD_TYPE: '${{ matrix.build-type }}'
+        name: Package
         run: >-
-          cpack -C ${{matrix.build-type}}
-          --config ${{github.workspace}}/build/CPackConfig.cmake --verbose
+          cpack -C "${BUILD_TYPE}"
+          --config "${GITHUB_WORKSPACE}"/build/CPackConfig.cmake --verbose
       - name: Create AppImage
         env:
+          BUILD_TYPE: '${{ matrix.build-type }}'
           DEPLOY_ARCH: ${{ matrix.arch.deploy_arch }}
           EXTRA_PLATFORM_PLUGINS: 'libqwayland-generic.so;libqwayland-egl.so'
           EXTRA_QT_PLUGINS: 'wayland-decoration-client;wayland-graphics-integration-client;wayland-shell-integration'
@@ -242,18 +270,19 @@ jobs:
           wget "https://github.com/TheAssassin/linuxdeploy/releases/download/continuous/linuxdeploy-${DEPLOY_ARCH}.AppImage"
           wget "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-${DEPLOY_ARCH}.AppImage"
           chmod +x "linuxdeploy-${DEPLOY_ARCH}.AppImage" "linuxdeploy-plugin-qt-${DEPLOY_ARCH}.AppImage"
-          export QMAKE="$(command -v qmake6)"
-          "./linuxdeploy-${DEPLOY_ARCH}.AppImage" --appdir ${{github.workspace}}/build/AppDir --plugin qt --output appimage
+          QMAKE="$(command -v qmake6)"
+          export QMAKE
+          "./linuxdeploy-${DEPLOY_ARCH}.AppImage" --appdir "${GITHUB_WORKSPACE}"/build/AppDir --plugin qt --output appimage
           rm "./linuxdeploy-${DEPLOY_ARCH}.AppImage" "./linuxdeploy-plugin-qt-${DEPLOY_ARCH}.AppImage"
-          mv -v ${{github.workspace}}/*.AppImage "${{github.workspace}}/browserchooser-${{matrix.build-type}}-${DEPLOY_ARCH}.AppImage"
+          mv -v "${GITHUB_WORKSPACE}"/*.AppImage "${GITHUB_WORKSPACE}/browserchooser-${BUILD_TYPE}-${DEPLOY_ARCH}.AppImage"
       - env:
           DEPLOY_ARCH: ${{ matrix.arch.deploy_arch }}
           REF_NAME: ${{ github.ref_name }}
         if: ${{ github.ref_type == 'tag' && matrix.build-type == 'Release' }}
         name: Rename with tag
         run: >-
-          mv -v ${{github.workspace}}/browserchooser-*.AppImage
-          "${{github.workspace}}/browserchooser-${REF_NAME}-${DEPLOY_ARCH}.AppImage"
+          mv -v "${GITHUB_WORKSPACE}"/browserchooser-*.AppImage
+          "${GITHUB_WORKSPACE}/browserchooser-${REF_NAME}-${DEPLOY_ARCH}.AppImage"
       - name: 'Upload Artifacts'
         uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
