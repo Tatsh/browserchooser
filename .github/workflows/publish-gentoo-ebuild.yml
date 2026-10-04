@@ -1,18 +1,63 @@
 ---
 concurrency:
   cancel-in-progress: false
-  group: '${{ github.workflow }}-${{ github.ref }}'
+  group: '${{ github.workflow }}-${{ github.event.workflow_run.head_sha }}'
   queue: 'max'
 jobs:
+  check:
+    if: "github.event.workflow_run.conclusion == 'success'"
+    name: 'Find Release'
+    outputs:
+      tag: '${{ steps.release.outputs.tag }}'
+    permissions:
+      contents: 'read'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - env:
+          GH_TOKEN: '${{ github.token }}'
+          HEAD_SHA: '${{ github.event.workflow_run.head_sha }}'
+          REPO: '${{ github.repository }}'
+        id: 'release'
+        name: 'Find the published release for this commit'
+        run: |
+          tag=''
+          while IFS=$'\t' read -r ref obj_type obj_sha; do
+            [[ -z "$ref" ]] && continue
+            if [[ "$obj_type" == 'commit' ]]; then
+              target_sha="$obj_sha"
+            else
+              target_sha=$(gh api "repos/${REPO}/git/tags/${obj_sha}" \
+                --jq '.object.sha' 2>/dev/null || echo '')
+            fi
+            if [[ "$target_sha" == "$HEAD_SHA" ]]; then
+              tag="${ref#refs/tags/}"
+              break
+            fi
+          done < <(gh api "repos/${REPO}/git/matching-refs/tags/v" \
+            --jq '.[] | [.ref, .object.type, .object.sha] | @tsv')
+          if [[ -z "$tag" ]]; then
+            echo "No v* tag points at ${HEAD_SHA}, nothing to do."
+            exit 0
+          fi
+          unpublished=$(gh release view "$tag" --repo "$REPO" --json isDraft,isPrerelease \
+            --jq '.isDraft or .isPrerelease' 2>/dev/null || echo 'true')
+          if [[ "$unpublished" != 'false' ]]; then
+            echo "Release ${tag} is not published, nothing to do."
+            exit 0
+          fi
+          echo "Found published release ${tag}."
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
   create-ebuild-pr:
-    if: '!github.event.release.draft && !github.event.release.prerelease'
+    if: "needs.check.outputs.tag != ''"
     name: 'Create ebuild pull request'
+    needs:
+      - 'check'
     runs-on: ubuntu-latest
     steps:
       - name: Extract version
         id: version
         env:
-          TAG_NAME: ${{ github.event.release.tag_name }}
+          TAG_NAME: ${{ needs.check.outputs.tag }}
         run: |
           TAG="$TAG_NAME"
           VERSION="${TAG#v}"
@@ -58,7 +103,6 @@ jobs:
       - name: Create pull request
         env:
           GH_TOKEN: ${{ secrets.GENTOO_TOKEN }}
-          RELEASE_URL: ${{ github.event.release.html_url }}
           TAG: ${{ steps.version.outputs.tag }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
@@ -84,8 +128,8 @@ jobs:
           fi
           body_file="${RUNNER_TEMP}/pr-body.md"
           {
-            printf 'This PR was automatically created from the [Browser Chooser %s release](%s).\n\n' \
-              "$TAG" "$RELEASE_URL"
+            printf 'This PR was automatically created from the [Browser Chooser %s release](https://github.com/%s/releases/tag/%s).\n\n' \
+              "$TAG" "$GITHUB_REPOSITORY" "$TAG"
             printf 'Signed-off-by: Andrew Udvare <audvare@gmail.com>\n\n'
             printf 'Release: https://github.com/%s/releases/tag/%s\n\n' "$GITHUB_REPOSITORY" "$TAG"
             cat <<'EOF'
@@ -99,8 +143,10 @@ jobs:
             --title "$title" --body-file "$body_file"
 name: Add new ebuild to Portage
 'on':
-  release:
+  workflow_run:
+    workflows:
+      - 'Release'
     types:
-      - 'published'
+      - 'completed'
 permissions:
   contents: read

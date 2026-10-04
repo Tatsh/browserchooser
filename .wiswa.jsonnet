@@ -104,6 +104,13 @@ local utils = import 'utils.libsonnet';
         max_versions_to_keep: 1,
       },
     },
+    zizmor+: {
+      rules+: {
+        'dangerous-triggers'+: {
+          ignore+: ['publish-gentoo-ebuild.yml'],
+        },
+      },
+    },
   },
   snapcraft+: {
     parts+: {

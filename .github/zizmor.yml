@@ -10,5 +10,6 @@ rules:
       - 'publish-msys2.yml'
       - 'publish-winget.yml'
       - 'release.yml'
+      - 'publish-gentoo-ebuild.yml'
   undocumented-permissions:
     disable: true
