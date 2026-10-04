@@ -121,6 +121,7 @@ oneline
 osascript
 pacboy
 percentu
+pipx
 pkgbuild
 pkgcheck
 pkgrel
