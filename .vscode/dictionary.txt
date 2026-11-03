@@ -126,6 +126,7 @@ osascript
 pacboy
 pathlib
 percentu
+pipefail
 pipx
 pkgbuild
 pkgcheck
