@@ -36,6 +36,7 @@ color
 commitizen
 concrt
 configtest
+copytree
 coveragerc
 coverallsapp
 cpack
@@ -84,7 +85,6 @@ ignoregeometry
 ignoregeometryrule
 instdir
 interprocedural
-iterdir
 iwyu
 jinja
 jsonnet
@@ -156,6 +156,7 @@ reflow
 regen
 ripgreprc
 rmpath
+rmtree
 sbclaude
 schemafile
 selectorwidget
@@ -164,6 +165,7 @@ shellcheck
 shellformat
 shlex
 shlib
+shutil
 snapcore
 snapcraft
 statusline
