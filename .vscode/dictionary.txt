@@ -1,6 +1,7 @@
 abcxyz
 aclocal
 advapi
+analyzer
 appdir
 appimage
 appl
@@ -55,6 +56,7 @@ docstrings
 domainmatch
 domainmatchtest
 draggablepopup
+elif
 endforeach
 endfunction
 esac
@@ -82,6 +84,7 @@ ignoregeometry
 ignoregeometryrule
 instdir
 interprocedural
+iterdir
 iwyu
 jinja
 jsonnet
@@ -110,6 +113,7 @@ msystem
 mypy
 ndebug
 nodisplay
+nojekyll
 nonexistent
 noone
 nrvo
@@ -120,6 +124,7 @@ offscreen
 oneline
 osascript
 pacboy
+pathlib
 percentu
 pipx
 pkgbuild
