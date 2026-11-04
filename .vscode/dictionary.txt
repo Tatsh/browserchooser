@@ -151,12 +151,14 @@ qtgui
 qtwidgets
 qunsetenv
 qverify
+rdparty
 rect
 reflow
 regen
 ripgreprc
 rmpath
 rmtree
+sarif
 sbclaude
 schemafile
 selectorwidget
