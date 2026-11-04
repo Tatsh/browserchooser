@@ -167,7 +167,6 @@ local utils = import 'utils.libsonnet';
           uses: 'jurplel/install-qt-action@a9c63c7c123f3069cff414e7e482d95dfa9d8125',
         },
       ],
-      workflow_file: 'pages.yml',
     },
   } },
 }
