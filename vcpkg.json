@@ -10,7 +10,7 @@
         "widgets"
       ],
       "name": "qtbase",
-      "version>=": "6.11.2"
+      "version>=": "6.11.3"
     }
   ],
   "description": "Pick which browser to use based on domain names.",
