@@ -1,7 +1,6 @@
 abcxyz
 aclocal
 advapi
-analyzer
 appdir
 appimage
 appl
@@ -36,7 +35,6 @@ color
 commitizen
 concrt
 configtest
-copytree
 coveragerc
 coverallsapp
 cpack
@@ -57,7 +55,6 @@ docstrings
 domainmatch
 domainmatchtest
 draggablepopup
-elif
 endforeach
 endfunction
 esac
@@ -124,9 +121,7 @@ offscreen
 oneline
 osascript
 pacboy
-pathlib
 percentu
-pipefail
 pipx
 pkgbuild
 pkgcheck
@@ -157,7 +152,6 @@ reflow
 regen
 ripgreprc
 rmpath
-rmtree
 sarif
 sbclaude
 schemafile
@@ -167,7 +161,6 @@ shellcheck
 shellformat
 shlex
 shlib
-shutil
 snapcore
 snapcraft
 statusline
