@@ -113,7 +113,6 @@ jobs:
             'browserchooser-*-aarch64.AppImage'
             'browserchooser-*-x86_64.AppImage'
             'browserchooser_*_amd64.snap'
-            'browserchooser_*_arm64.snap'
             'sh.tat.browserchooser-*-aarch64.flatpak'
             'sh.tat.browserchooser-*-x86_64.flatpak'
           )
